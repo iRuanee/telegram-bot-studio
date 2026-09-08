@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 REPLY_TYPES = ("text", "photo", "document")
 
 # Built-in commands handled in code; dynamic commands must not shadow them.
-RESERVED_NAMES = frozenset({"start", "help", "about", "ping"})
+RESERVED_NAMES = frozenset({"start", "about"})
 
 # name -> command dict (enabled commands only).
 _REGISTRY: dict[str, dict] = {}

@@ -54,9 +54,10 @@ def _main_menu_keyboard() -> ReplyKeyboardMarkup:
         rows,
         resize_keyboard=True,
         is_persistent=True,
-        input_field_placeholder="Выберите пункт меню", #Choose a menu item
+        input_field_placeholder="Выберите пункт меню", 
     )
         #previously ^^^ :   [[MENU_HELP, MENU_ABOUT], [MENU_PING]]
+        #previously ^^^ :   Choose a menu item
 
 
 def _dynamic_commands_text() -> str:
@@ -301,7 +302,7 @@ def register_handlers(application: Application) -> None:
     # Any other /command is resolved dynamically from the panel-managed registry.
     application.add_handler(MessageHandler(filters.COMMAND, dynamic_command_dispatcher))
     application.add_handler(
-        MessageHandler(filters.Regex(f"^({MENU_ABOUT}$"), menu_button)
+        MessageHandler(filters.Regex(f"^({MENU_ABOUT})$"), menu_button)
     )
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_message))
         #previously ^^^ :   MessageHandler(filters.Regex(f"^({MENU_HELP}|{MENU_ABOUT}|{MENU_PING})$"), menu_button)
