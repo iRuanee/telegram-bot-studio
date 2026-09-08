@@ -34,7 +34,7 @@ _BASE_DIR = Path(__file__).resolve().parent
 templates = Jinja2Templates(directory=str(_BASE_DIR / "templates"))
 
 NAME_RE = re.compile(r"^[a-z0-9_]{1,32}$")
-BUILTIN_COMMANDS = ("start", "help", "about", "ping")
+BUILTIN_COMMANDS = ("start", "about")
 login_limiter = LoginRateLimiter()
 
 
@@ -518,7 +518,7 @@ def create_app(application, settings) -> FastAPI:
         existing = await db.list_menu_buttons(pool)
         if any(item["label"].casefold() == label.casefold() for item in existing):
             errors.append("A button with this label already exists.")
-        if label.casefold() in {"help", "about", "ping"}:
+        if label.casefold() in {"about"}:
             errors.append("This label is already used by a built-in button.")
         if errors:
             return await _render_button_form(
@@ -660,7 +660,7 @@ def create_app(application, settings) -> FastAPI:
             for item in existing
         ):
             errors.append("A button with this label already exists.")
-        if label.casefold() in {"help", "about", "ping"}:
+        if label.casefold() in {"about"}:
             errors.append("This label is already used by a built-in button.")
         return values, errors
 
@@ -679,7 +679,7 @@ def create_app(application, settings) -> FastAPI:
         ]
         defaults = {
             "label": "",
-            "command_name": "help",
+            "command_name": "about",
             "row_index": 0,
             "sort_order": 0,
             "enabled": True,
