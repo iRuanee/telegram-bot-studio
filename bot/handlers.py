@@ -99,7 +99,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         is_new = await db.upsert_user(pool, user.id, user.username, user.first_name)
 
     name = user.first_name if user.first_name else "посетитель"
-    greeting = "Здравствуй" if is_new else "Добро пожаловать"
+    greeting = "Здравствуйте" if is_new else "Добро пожаловать"
     await message.reply_text(
         f"{greeting}, {name}!\n\n"
         "Выберите кнопку меню ниже или введите /help, чтобы увидеть доступные команды.",
