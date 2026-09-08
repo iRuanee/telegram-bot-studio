@@ -118,7 +118,7 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await message.reply_text(
         ABOUT_TEXT
         + _dynamic_commands_text()
-        + "\n\nОтправьте обычное текстовое сообщение, и бот ответит вам тем же.",
+        + "\n\nЛибо, отправьте обычное текстовое сообщение, в этом случае бот ответит вам тем же.",
         reply_markup=_dynamic_commands_keyboard(),
     )
 
@@ -210,7 +210,7 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         #return
 
     count = _LOCAL_MESSAGE_COUNTS[user.id] = _LOCAL_MESSAGE_COUNTS.get(user.id, 0) + 1
-    await message.reply_text(f"You sent (#{count}):\n{message.text}")
+    await message.reply_text(f"Вы отправили (#{count}):\n{message.text}")
 
 
 def _parse_command_name(text: str) -> str:
@@ -239,7 +239,7 @@ async def dynamic_command_dispatcher(
         await commands.send(message, command)
         return
 
-    await message.reply_text("Unknown command. Type /help for assistance.")
+    await message.reply_text("Неизвестная команда. Напишите /about для ознакомления с доступными командами.")
 
 
 async def dynamic_command_button(
@@ -254,7 +254,7 @@ async def dynamic_command_button(
     name = query.data.removeprefix(DYNAMIC_CALLBACK_PREFIX)
     command = commands.lookup(name)
     if command is None:
-        await query.answer("This command is no longer available.", show_alert=True)
+        await query.answer("Эта команда недоступна.", show_alert=True)
         return
 
     await query.answer()
@@ -276,7 +276,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
     if isinstance(update, Update) and update.effective_message:
         await update.effective_message.reply_text(
-            "Sorry, an error occurred while processing your message."
+            "Возникла ошибка при обработке сообщения."
         )
 
 
