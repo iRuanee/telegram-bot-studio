@@ -45,7 +45,7 @@ DYNAMIC_CALLBACK_PREFIX = "command:"
 
 
 def _main_menu_keyboard() -> ReplyKeyboardMarkup:
-    rows: list[list[str]] =  [[MENU_ABOUT]]   #[[MENU_HELP, MENU_ABOUT], [MENU_PING]]
+    rows: list[list[str]] =  [[MENU_ABOUT]]
     custom_rows: dict[int, list[str]] = {}
     for button in commands.reply_menu_buttons():
         custom_rows.setdefault(button["row_index"], []).append(button["label"])
@@ -56,6 +56,7 @@ def _main_menu_keyboard() -> ReplyKeyboardMarkup:
         is_persistent=True,
         input_field_placeholder="Выберите пункт меню", #Choose a menu item
     )
+        #previously ^^^ :   [[MENU_HELP, MENU_ABOUT], [MENU_PING]]
 
 
 def _dynamic_commands_text() -> str:
@@ -63,7 +64,8 @@ def _dynamic_commands_text() -> str:
     if not items:
         return ""
     lines = [f"/{name} - {description}" for name, description in items]
-    return "\n\nДоступные команды меню:\n" + "\n".join(lines) #"\n\nAvailable menu commands:\n"
+    return "\n\nДоступные команды меню:\n" + "\n".join(lines) 
+        #previously ^^^: "\n\nAvailable menu commands:\n"
 
 
 def _dynamic_commands_keyboard() -> InlineKeyboardMarkup | None:
@@ -299,6 +301,7 @@ def register_handlers(application: Application) -> None:
     # Any other /command is resolved dynamically from the panel-managed registry.
     application.add_handler(MessageHandler(filters.COMMAND, dynamic_command_dispatcher))
     application.add_handler(
-        MessageHandler(filters.Regex(f"^({MENU_ABOUT}$"), menu_button)    #MessageHandler(filters.Regex(f"^({MENU_HELP}|{MENU_ABOUT}|{MENU_PING})$"), menu_button)
+        MessageHandler(filters.Regex(f"^({MENU_ABOUT}$"), menu_button)
     )
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_message))
+        #previously ^^^ :   MessageHandler(filters.Regex(f"^({MENU_HELP}|{MENU_ABOUT}|{MENU_PING})$"), menu_button)
