@@ -76,7 +76,7 @@ def _dynamic_commands_keyboard() -> InlineKeyboardMarkup | None:
 
     buttons = [
         InlineKeyboardButton(
-            text=description if description else f"/{name}",
+            text=description if (description and description.strip()) else name,
             callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}",
         )
         for name, description in items
@@ -162,25 +162,25 @@ async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     text = message.text.strip()
+    
+    # 1. Проверка системной кнопки "Информация о боте"
     if text == MENU_ABOUT:
         await about(update, context)
-
-    #if text == MENU_HELP:
-    #    await help_command(update, context)
-    #elif text == MENU_ABOUT:
-    #    await about(update, context)
-    #elif text == MENU_PING:
-    #    await ping(update, context)
-
-
-async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    message = await about(update, context)
-    #message = update.effective_message
-    user = update.effective_user
-    if message is None or not message.text or user is None:
         return
 
-    target = commands.button_target(message.text.strip())
+    # 2. Проверка динамических кнопок: Текст Кнопки == Описание Команды в админке
+    matched_command = None
+    for cmd in commands._REGISTRY.values():
+        if cmd.get("description") and cmd["description"].strip() == text:
+            matched_command = cmd
+            break
+
+    if matched_command:
+        await commands.send(message, matched_command)
+        return
+
+    # 3. Проверка кнопок из таблицы menu_buttons (раздел глобального меню в админке)
+    target = commands.button_target(text)
     if target is not None:
         if target == "about":
             await about(update, context)
@@ -193,6 +193,57 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             else:
                 await commands.send(message, command)
         return
+
+    # 4. Если это ни одна из кнопок, значит пользователь просто написал текст.
+    # Перенаправляем в эхо-обработчик (покажет подсказку)
+    await echo_message(update, context)
+
+
+async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    message = update.effective_message
+    if message is None or not message.text:
+        return
+
+    # Автоматически вызываем подсказку со всеми доступными командами
+    await about(update, context)
+
+#async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#    message = update.effective_message
+#    if message is None or not message.text:
+#        return
+#
+#    text = message.text.strip()
+#    if text == MENU_ABOUT:
+#        await about(update, context)
+#
+    #if text == MENU_HELP:
+    #    await help_command(update, context)
+    #elif text == MENU_ABOUT:
+    #    await about(update, context)
+    #elif text == MENU_PING:
+    #    await ping(update, context)
+
+
+#async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#    message = await about(update, context)
+#    #message = update.effective_message
+#    user = update.effective_user
+#    if message is None or not message.text or user is None:
+#        return
+#
+#    target = commands.button_target(message.text.strip())
+#    if target is not None:
+#        if target == "about":
+#            await about(update, context)
+#        elif target == "start":
+#            await start(update, context)
+#        else:
+#            command = commands.lookup(target)
+#            if command is None:
+#                await message.reply_text("В данный момент эта команда недоступна.")
+#            else:
+#                await commands.send(message, command)
+#        return
 
         #if target == "help":
         #    await help_command(update, context)
@@ -210,8 +261,8 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         #        await commands.send(message, command)
         #return
 
-    count = _LOCAL_MESSAGE_COUNTS[user.id] = _LOCAL_MESSAGE_COUNTS.get(user.id, 0) + 1
-    await message.reply_text(f"Вы отправили (#{count}):\n{message.text}")
+    #count = _LOCAL_MESSAGE_COUNTS[user.id] = _LOCAL_MESSAGE_COUNTS.get(user.id, 0) + 1
+    #await message.reply_text(f"Вы отправили (#{count}):\n{message.text}")
 
 
 def _parse_command_name(text: str) -> str:
@@ -288,12 +339,8 @@ async def set_bot_commands(application: Application) -> None:
 
 
 def register_handlers(application: Application) -> None:
-
-
     application.add_handler(CommandHandler("start", start))
-    #application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("about", about))
-    #application.add_handler(CommandHandler("ping", ping))
     application.add_handler(
         CallbackQueryHandler(
             dynamic_command_button,
@@ -302,8 +349,29 @@ def register_handlers(application: Application) -> None:
     )
     # Any other /command is resolved dynamically from the panel-managed registry.
     application.add_handler(MessageHandler(filters.COMMAND, dynamic_command_dispatcher))
-    application.add_handler(
-        MessageHandler(filters.Regex(f"^({MENU_ABOUT})$"), menu_button)
-    )
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_message))
-        #previously ^^^ :   MessageHandler(filters.Regex(f"^({MENU_HELP}|{MENU_ABOUT}|{MENU_PING})$"), menu_button)
+    
+    # Направляем все текстовые сообщения сначала в menu_button для проверки на кнопки.
+    # Если это не кнопка, menu_button сама внутри перенаправит в echo_message.
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, menu_button))
+
+
+#def register_handlers(application: Application) -> None:
+#
+#
+#    application.add_handler(CommandHandler("start", start))
+#    #application.add_handler(CommandHandler("help", help_command))
+#    application.add_handler(CommandHandler("about", about))
+#    #application.add_handler(CommandHandler("ping", ping))
+#    application.add_handler(
+#        CallbackQueryHandler(
+#            dynamic_command_button,
+#            pattern=f"^{DYNAMIC_CALLBACK_PREFIX}[a-z0-9_]{{1,32}}$",
+#        )
+#    )
+#    # Any other /command is resolved dynamically from the panel-managed registry.
+#    application.add_handler(MessageHandler(filters.COMMAND, dynamic_command_dispatcher))
+#    application.add_handler(
+#        MessageHandler(filters.Regex(f"^({MENU_ABOUT})$"), menu_button)
+#    )
+#    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_message))
+#        #previously ^^^ :   MessageHandler(filters.Regex(f"^({MENU_HELP}|{MENU_ABOUT}|{MENU_PING})$"), menu_button)
