@@ -118,7 +118,7 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await message.reply_text(
         ABOUT_TEXT
         + _dynamic_commands_text()
-        + "\n\nЛибо, отправьте обычное текстовое сообщение, в этом случае бот ответит вам тем же.",
+        + "\n\nЛюбое отправленное текстовое сообщение, автоматически вызывает подсказку /about.",
         reply_markup=_dynamic_commands_keyboard(),
     )
 
