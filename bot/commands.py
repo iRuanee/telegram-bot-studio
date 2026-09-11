@@ -51,10 +51,22 @@ def lookup(name: str) -> dict | None:
 def menu_commands() -> list[tuple[str, str]]:
     """Return (name, description) pairs for commands that opt into the menu."""
     return [
-        (cmd["name"], cmd["description"] or cmd["name"])
+        (
+            cmd["name"], 
+            cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"]
+        )
         for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
         if cmd.get("show_in_menu")
     ]
+
+
+#def menu_commands() -> list[tuple[str, str]]:
+#    """Return (name, description) pairs for commands that opt into the menu."""
+#    return [
+#        (cmd["name"], cmd["description"] or cmd["name"])
+#        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
+#        if cmd.get("show_in_menu")
+#    ]
 
 
 def reply_menu_buttons() -> list[dict]:
