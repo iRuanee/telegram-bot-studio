@@ -102,7 +102,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     greeting = "Здравствуйте" if is_new else "Добро пожаловать"
     await message.reply_text(
         f"{greeting}, {name}!\n\n"
-        "Выберите кнопку меню ниже или введите /help, чтобы увидеть доступные команды.",
+        "Предлагаем вам ознакомиться с основными нюансами, которые нужно знать перед регистрацией аккаунта на третье лицо.",
         reply_markup=_main_menu_keyboard(),
     )
     dynamic_keyboard = _dynamic_commands_keyboard()
@@ -174,7 +174,8 @@ async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
 
 async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    message = update.effective_message
+    message = await about(update, context)
+    #message = update.effective_message
     user = update.effective_user
     if message is None or not message.text or user is None:
         return
