@@ -45,19 +45,40 @@ DYNAMIC_CALLBACK_PREFIX = "command:"
 
 
 def _main_menu_keyboard() -> ReplyKeyboardMarkup:
-    rows: list[list[str]] =  [[MENU_ABOUT]]
-    custom_rows: dict[int, list[str]] = {}
+    # Инициализируем словарь рядов и сразу добавляем MENU_ABOUT в самый первый ряд (индекс 0)
+    custom_rows: dict[int, list[str]] = {0: [MENU_ABOUT]}
+    
+    # Проходим по кнопкам из админки
     for button in commands.reply_menu_buttons():
+        # Если в админке для кнопки указан row_index, добавляем её в соответствующий список.
+        # Если указан row_index = 0, она добавится в один ряд к MENU_ABOUT
         custom_rows.setdefault(button["row_index"], []).append(button["label"])
-    rows.extend(custom_rows[index] for index in sorted(custom_rows))
+        
+    # Собираем финальную сетку клавиатуры, сортируя ряды по возрастанию индекса
+    rows = [custom_rows[index] for index in sorted(custom_rows)]
+    
     return ReplyKeyboardMarkup(
         rows,
         resize_keyboard=True,
         is_persistent=True,
         input_field_placeholder="Выберите пункт меню", 
     )
-        #previously ^^^ :   [[MENU_HELP, MENU_ABOUT], [MENU_PING]]
-        #previously ^^^ :   Choose a menu item
+
+
+#def _main_menu_keyboard() -> ReplyKeyboardMarkup:
+#    rows: list[list[str]] =  [[MENU_ABOUT]]
+#    custom_rows: dict[int, list[str]] = {}
+#    for button in commands.reply_menu_buttons():
+#        custom_rows.setdefault(button["row_index"], []).append(button["label"])
+#    rows.extend(custom_rows[index] for index in sorted(custom_rows))
+#    return ReplyKeyboardMarkup(
+#        rows,
+#        resize_keyboard=True,
+#        is_persistent=True,
+#        input_field_placeholder="Выберите пункт меню", 
+#    )
+#        #previously ^^^ :   [[MENU_HELP, MENU_ABOUT], [MENU_PING]]
+#        #previously ^^^ :   Choose a menu item
 
 
 def _dynamic_commands_text() -> str:
