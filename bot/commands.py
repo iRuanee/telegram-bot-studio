@@ -87,10 +87,44 @@ def _build_keyboard(keyboard: list | None) -> ReplyKeyboardMarkup | None:
     """Turn a stored layout (list of rows of labels) into a reply keyboard."""
     if not keyboard:
         return None
-    rows = [[str(label) for label in row] for row in keyboard if row]
+        
+    rows = []
+    for row in keyboard:
+        if not row:
+            continue
+        new_row = []
+        for label in row:
+            label_str = str(label).strip()
+            
+            # Если текст на кнопке начинается со слэша (например, "/menu")
+            if label_str.startswith("/"):
+                cmd_name = label_str.lstrip("/")
+                # Ищем команду в нашем кэше оперативной памяти
+                cmd_obj = _REGISTRY.get(cmd_name.lower())
+                
+                # Если команда найдена
+                if cmd_obj and cmd_obj.get("description") and cmd_obj["description"].strip():
+                    new_row.append(cmd_obj["description"].strip())
+                    continue
+            
+            # Во всех остальных случаях (или если описания нет) оставляем исходный текст кнопки
+            new_row.append(label_str)
+        if new_row:
+            rows.append(new_row)
+            
     if not rows:
         return None
     return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
+
+
+#def _build_keyboard(keyboard: list | None) -> ReplyKeyboardMarkup | None:
+#    """Turn a stored layout (list of rows of labels) into a reply keyboard."""
+#    if not keyboard:
+#        return None
+#    rows = [[str(label) for label in row] for row in keyboard if row]
+#    if not rows:
+#        return None
+#    return ReplyKeyboardMarkup(rows, resize_keyboard=True, is_persistent=True)
 
 
 async def send(message: Message, command: dict) -> None:
