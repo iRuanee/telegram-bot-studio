@@ -77,7 +77,7 @@ def _dynamic_commands_keyboard() -> InlineKeyboardMarkup | None:
     buttons = [
         InlineKeyboardButton(
             description or f"/{name}",
-            callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}",
+            callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{description}",
         )
         for name, description in items
     ]
