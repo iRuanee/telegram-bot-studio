@@ -387,16 +387,38 @@ def create_app(application, settings) -> FastAPI:
         selected_targets = [
             name for name in form.getlist("target_commands") if name in valid_targets
         ]
-        try:
-            columns = min(3, max(1, int(form.get("columns") or 2)))
-        except ValueError:
-            columns = 2
+
         if not selected_targets and not clear_buttons:
             errors.append("Select at least one command for the response buttons.")
-        keyboard = [
-            [f"/{name}" for name in selected_targets[index : index + columns]]
-            for index in range(0, len(selected_targets), columns)
-        ]
+
+        # --- НАЧАЛО НОВОЙ ЛОГИКИ ГЕОМЕТРИИ СЕТКИ КНОПОК ---
+        keyboard = []
+        if not errors and not clear_buttons:
+            # Промежуточная структура для группировки: { номер_ряда: [ (позиция, имя_команды), ... ] }
+            grid_structure = {}
+            
+            for cmd_name in selected_targets:
+                try:
+                    # Считываем переданные координаты из полей формы row_имя и pos_имя
+                    row_idx = max(0, int(form.get(f"row_{cmd_name}") or 0))
+                    pos_idx = max(0, int(form.get(f"pos_{cmd_name}") or 0))
+                except ValueError:
+                    row_idx, pos_idx = 0, 0
+                
+                if row_idx not in grid_structure:
+                    grid_structure[row_idx] = []
+                grid_structure[row_idx].append((pos_idx, f"/{cmd_name}"))
+            
+            # Собираем финальный массив массивов (матрицу кнопок)
+            # Сначала сортируем сами ряды по возрастанию (Ряд 0, Ряд 1...)
+            for row_idx in sorted(grid_structure.keys()):
+                # Сортируем кнопки ВНУТРИ текущего ряда по их позиции pos_idx
+                sorted_row_buttons = sorted(grid_structure[row_idx], key=lambda x: x)
+                # Очищаем структуру, оставляя только отсортированные имена команд со слэшем
+                clean_row = [cmd_name for pos, cmd_name in sorted_row_buttons]
+                keyboard.append(clean_row)
+        # --- КОНЕЦ НОВОЙ ЛОГИКИ ГЕОМЕТРИИ СЕТКИ КНОПОК ---
+
         if errors:
             return templates.TemplateResponse(
                 "response_buttons.html",
@@ -406,7 +428,7 @@ def create_app(application, settings) -> FastAPI:
                     "selected": selected,
                     "target_commands": target_commands,
                     "selected_targets": set(selected_targets),
-                    "columns": columns,
+                    "columns": 2, # Передаем дефолтное значение для совместимости шаблона, если нужно
                     "errors": errors,
                     "csrf_token": get_csrf_token(request),
                 },
@@ -435,6 +457,80 @@ def create_app(application, settings) -> FastAPI:
         return RedirectResponse(
             f"/response-buttons?command_id={command_id}", status_code=303
         )
+
+#    @app.post(
+#        "/response-buttons",
+#        response_class=HTMLResponse,
+#        dependencies=[Depends(login_required)],
+#    )
+#    async def response_buttons_submit(request: Request):
+#        form = await request.form()
+#        verify_csrf(request, form.get("csrf_token"))
+#        pool = _get_pool(request)
+#        try:
+#            command_id = int(form.get("command_id") or "")
+#        except ValueError:
+#            command_id = 0
+#        selected = await db.get_command(pool, command_id)
+#        errors = [] if selected else ["Select a valid command from the list."]
+#        clear_buttons = form.get("clear") == "1"
+#        command_rows = await db.list_commands(pool)
+#        target_commands = [
+#            {"name": name, "description": f"Built-in /{name}"}
+#            for name in BUILTIN_COMMANDS
+#        ] + command_rows
+#        valid_targets = {item["name"] for item in target_commands}
+#        selected_targets = [
+#            name for name in form.getlist("target_commands") if name in valid_targets
+#        ]
+#        try:
+#            columns = min(3, max(1, int(form.get("columns") or 2)))
+#        except ValueError:
+#            columns = 2
+#        if not selected_targets and not clear_buttons:
+#            errors.append("Select at least one command for the response buttons.")
+#        keyboard = [
+#            [f"/{name}" for name in selected_targets[index : index + columns]]
+#            for index in range(0, len(selected_targets), columns)
+#        ]
+#        if errors:
+#            return templates.TemplateResponse(
+#                "response_buttons.html",
+#                {
+#                    "request": request,
+#                    "commands": command_rows,
+#                    "selected": selected,
+#                    "target_commands": target_commands,
+#                    "selected_targets": set(selected_targets),
+#                    "columns": columns,
+#                    "errors": errors,
+#                    "csrf_token": get_csrf_token(request),
+#                },
+#                status_code=400,
+#            )
+#        await db.update_command_keyboard(
+#            pool, command_id, None if clear_buttons else keyboard
+#        )
+#        await _audit(
+#            request,
+#            "cleared" if clear_buttons else "updated",
+#            "response_buttons",
+#            selected["name"],
+#            {"targets": [] if clear_buttons else selected_targets},
+#        )
+#        await _refresh(request)
+#        _flash(
+#            request,
+#            (
+#                f"Response buttons for /{selected['name']} were removed."
+#                if clear_buttons
+#                else f"Response buttons for /{selected['name']} were updated."
+#            ),
+#            refresh=True,
+#        )
+#        return RedirectResponse(
+#            f"/response-buttons?command_id={command_id}", status_code=303
+#        )
 
     @app.post(
         "/commands/{command_id}/delete", dependencies=[Depends(login_required)]

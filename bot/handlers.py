@@ -45,24 +45,57 @@ DYNAMIC_CALLBACK_PREFIX = "command:"
 
 
 def _main_menu_keyboard() -> ReplyKeyboardMarkup:
-    # Инициализируем словарь рядов и сразу добавляем MENU_ABOUT в самый первый ряд (индекс 0)
-    custom_rows: dict[int, list[str]] = {0: [MENU_ABOUT]}
+    # Шаблон структуры: { row_index: [ (sort_order, label), ... ] }
+    # Сразу сажаем MENU_ABOUT в первый ряд (0) с наивысшим приоритетом сортировки (-100)
+    keyboard_structure: dict[int, list[tuple[int, str]]] = {
+        0: [(-100, MENU_ABOUT)]
+    }
     
-    # Проходим по кнопкам из админки
+    # Распределяем кнопки из базы по рядам
     for button in commands.reply_menu_buttons():
-        # Если в админке для кнопки указан row_index, добавляем её в соответствующий список.
-        # Если указан row_index = 0, она добавится в один ряд к MENU_ABOUT
-        custom_rows.setdefault(button["row_index"], []).append(button["label"])
+        r_index = button.get("row_index", 0)
+        s_order = button.get("sort_order", 0)
+        label = button.get("label", "Кнопка")
         
-    # Собираем финальную сетку клавиатуры, сортируя ряды по возрастанию индекса
-    rows = [custom_rows[index] for index in sorted(custom_rows)]
+        keyboard_structure.setdefault(r_index, []).append((s_order, label))
     
+    # Собираем финальную сетку клавиатуры
+    rows: list[list[str]] = []
+    # Сортируем сами ряды по возрастанию (0, 1, 2...)
+    for r_index in sorted(keyboard_structure.keys()):
+        # Сортируем кнопки ВНУТРИ текущего ряда по их sort_order
+        sorted_buttons_in_row = sorted(keyboard_structure[r_index], key=lambda item: item[0])
+        # Извлекаем только чистый текст кнопок (label)
+        clean_row = [label for s_order, label in sorted_buttons_in_row]
+        rows.append(clean_row)
+        
     return ReplyKeyboardMarkup(
         rows,
         resize_keyboard=True,
         is_persistent=True,
         input_field_placeholder="Выберите пункт меню", 
     )
+
+
+#def _main_menu_keyboard() -> ReplyKeyboardMarkup:
+#    # Инициализируем словарь рядов и сразу добавляем MENU_ABOUT в самый первый ряд (индекс 0)
+#    custom_rows: dict[int, list[str]] = {0: [MENU_ABOUT]}
+#    
+#    # Проходим по кнопкам из админки
+#    for button in commands.reply_menu_buttons():
+#        # Если в админке для кнопки указан row_index, добавляем её в соответствующий список.
+#        # Если указан row_index = 0, она добавится в один ряд к MENU_ABOUT
+#        custom_rows.setdefault(button["row_index"], []).append(button["label"])
+#        
+#    # Собираем финальную сетку клавиатуры, сортируя ряды по возрастанию индекса
+#    rows = [custom_rows[index] for index in sorted(custom_rows)]
+#    
+#    return ReplyKeyboardMarkup(
+#        rows,
+#        resize_keyboard=True,
+#        is_persistent=True,
+#        input_field_placeholder="Выберите пункт меню", 
+#    )
 
 
 #def _main_menu_keyboard() -> ReplyKeyboardMarkup:

@@ -1,80 +1,83 @@
-{% extends "base.html" %}
-{% block title %}Response Buttons · Telegram Bot Studio{% endblock %}
+{% extends "base.html" %} 
+{% block title %}Response Buttons · Telegram Bot Studio{% endblock %} 
 {% block content %}
-  <section class="page-heading">
-    <div>
-      <span class="eyebrow">Command extension</span>
-      <h1>Response buttons</h1>
-      <p>Select an existing command, then configure the buttons shown below its reply.</p>
+
+<h1>Response buttons</h1>
+<p>Select an existing command, then configure the buttons shown below its reply.</p>
+
+<div class="alert alert-info">
+    After changing response buttons, run /start in Telegram to refresh the keyboard shown in the chat.
+</div>
+
+{% if errors %}
+<div class="alert alert-danger">
+    <strong>Please fix the following</strong>
+    <ul>
+    {% for error in errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %} 
+
+{% if selected %}
+<form method="POST">
+    <h2>2. Настройка расположения кнопок для /{{ selected.name }}</h2>
+    <p class="text-muted small">Отметьте нужные команды галочками, укажите номер строки (Ряд) и позицию в ней (Порядковый номер).</p>
+
+    <div class="list-group mb-4">
+    {% for command in target_commands %} 
+        {# Логика автоматического определения текущих координат кнопки из базы данных #} 
+        {% set current_row = namespace(value=0) %} 
+        {% set current_pos = namespace(value=0) %} 
+        {% set is_checked = false %} 
+        
+        {% if selected.keyboard %} 
+            {% for row in selected.keyboard %} 
+                {% set row_loop = loop %} 
+                {% for item in row %} 
+                    {% if item == '/' ~ command.name %} 
+                        {% set current_row.value = row_loop.index0 %} 
+                        {% set current_pos.value = loop.index0 %} 
+                        {% set is_checked = true %} 
+                    {% endif %} 
+                {% endfor %} 
+            {% endfor %} 
+        {% endif %}
+
+        <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+            <div class="form-check m-0">
+                <input class="form-check-input" type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if is_checked %}checked{% endif %}>
+                <label class="form-check-label ms-2" for="cmd_{{ command.name }}">
+                    /<strong>{{ command.name }}</strong> — {{ command.description or command.reply_type }}
+                </label>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center">
+                    <label for="row_{{ command.name }}" class="me-1 text-muted small">Ряд:</label>
+                    <input type="number" name="row_{{ command.name }}" id="row_{{ command.name }}" class="form-control form-control-sm" style="width: 65px;" value="{{ current_row.value }}" min="0">
+                </div>
+                <div class="d-flex align-items-center">
+                    <label for="pos_{{ command.name }}" class="me-1 text-muted small">Поз:</label>
+                    <input type="number" name="pos_{{ command.name }}" id="pos_{{ command.name }}" class="form-control form-control-sm" style="width: 65px;" value="{{ current_pos.value }}" min="0">
+                </div>
+            </div>
+        </div>
+    {% endfor %}
     </div>
-  </section>
-  <div class="info-banner"><span>i</span><p>After changing response buttons, run <code>/start</code> in Telegram to refresh the keyboard shown in the chat.</p></div>
 
-  {% if errors %}
-  <div class="errors" role="alert"><strong>Please fix the following</strong><ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul></div>
-  {% endif %}
+    <button type="submit" class="btn btn-primary">Save response buttons</button> 
+    {% if selected.keyboard %} 
+        <a href="?remove=1" class="btn btn-outline-danger ms-2">Remove buttons</a> 
+    {% endif %}
+</form>
 
-  {% if commands %}
-  <div class="response-button-layout">
-    <section class="card form-section">
-      <div class="form-section-title"><span>1</span><div><h2>Select command</h2><p>Choose from the database to prevent typos.</p></div></div>
-      <label for="command-picker">Command</label>
-      <select id="command-picker" onchange="if(this.value) location.href='/response-buttons?command_id='+this.value">
-        <option value="">Choose a command…</option>
-        {% for command in commands %}
-        <option value="{{ command.id }}" {% if selected and selected.id == command.id %}selected{% endif %}>/{{ command.name }} — {{ command.description or command.reply_type }}</option>
-        {% endfor %}
-      </select>
-      <div class="command-select-list">
-        {% for command in commands %}
-        <a href="/response-buttons?command_id={{ command.id }}" class="{% if selected and selected.id == command.id %}active{% endif %}">
-          <span class="command-icon">/</span>
-          <span><strong>{{ command.name }}</strong><small>{{ command.description or command.reply_type }}</small></span>
-          {% if command.keyboard %}<i>Configured</i>{% endif %}
-        </a>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="card form-section">
-      {% if selected %}
-      <form method="post" action="/response-buttons">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <input type="hidden" name="command_id" value="{{ selected.id }}">
-        <div class="form-section-title"><span>2</span><div><h2>Buttons for /{{ selected.name }}</h2><p>Check commands to add—labels are generated automatically.</p></div></div>
-        <div class="field">
-          <label for="columns">Buttons per row</label>
-          <select id="columns" name="columns">
-            {% for count in (1, 2, 3) %}<option value="{{ count }}" {% if columns == count %}selected{% endif %}>{{ count }} button{% if count > 1 %}s{% endif %}</option>{% endfor %}
-          </select>
-        </div>
-        <label>Select button commands</label>
-        <div class="command-checklist">
-          {% for command in target_commands %}
-          <label>
-            <input type="checkbox" name="target_commands" value="{{ command.name }}" {% if command.name in selected_targets %}checked{% endif %}>
-            <span class="command-icon">/</span>
-            <span><strong>{{ command.name }}</strong><small>{{ command.description or command.reply_type }}</small></span>
-            <i>✓</i>
-          </label>
-          {% endfor %}
-        </div>
-        <div class="hint">Telegram sends the selected /command directly, so button targets cannot contain typos.</div>
-        <div class="row">
-          <button class="btn btn-primary btn-large" type="submit">Save response buttons</button>
-          {% if selected.keyboard %}<button class="btn btn-danger" type="submit" name="clear" value="1" onclick="return confirm('Remove all response buttons from /{{ selected.name }}?')">Remove buttons</button>{% endif %}
-        </div>
-      </form>
-      {% else %}
-      <div class="selection-empty"><span>←</span><h3>Select a command</h3><p>Its response-button editor will appear here.</p></div>
-      {% endif %}
-    </section>
-  </div>
-  {% else %}
-  <div class="card empty-state">
-    <span>⌘</span><h3>Create a command first</h3><p>Response buttons must be attached to an existing command.</p>
-    <a class="btn btn-primary" href="/commands/new">Add command</a>
-  </div>
-  {% endif %}
+{% else %}
+    <div class="text-center py-5 text-muted">
+        <h3>Select a command</h3>
+        <p>Its response-button editor will appear here.</p>
+    </div>
+{% endif %}
 
 {% endblock %}
