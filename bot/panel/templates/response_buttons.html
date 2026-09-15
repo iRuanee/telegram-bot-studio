@@ -2,30 +2,145 @@
 {% block title %}Response Buttons · Telegram Bot Studio{% endblock %} 
 {% block content %}
 
-<h1>Response buttons</h1>
-<p>Select an existing command, then configure the buttons shown below its reply.</p>
+<!-- Встроенные гарантированные стили, не зависящие от Bootstrap -->
+<style>
+    .studio-container {
+        font-family: system-ui, -apple-system, sans-serif;
+    }
+    .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 25px;
+    }
+    .custom-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 110px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+    .custom-card.active {
+        border-color: #3b82f6;
+        background-color: #f8fafc;
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+    }
+    .card-left {
+        padding-right: 140px; /* Оставляем место для настроек справа */
+        text-align: left;
+    }
+    .card-title {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1e293b;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .card-desc {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.4;
+    }
+    .card-right-settings {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: #f1f5f9;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+    }
+    .setting-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 13px;
+        color: #475569;
+        font-weight: 500;
+    }
+    .setting-item input {
+        width: 50px;
+        padding: 4px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        text-align: center;
+        font-size: 13px;
+    }
+    .form-check-input-custom {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+    .action-bar {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+    .btn-main {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    .btn-main:hover { background: #2563eb; }
+    .btn-danger-custom {
+        background: transparent;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    .btn-danger-custom:hover { background: #fef2f2; }
+    .select-box {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        margin-bottom: 12px;
+    }
+</style>
 
-<div class="alert alert-info">
-    After changing response buttons, run /start in Telegram to refresh the keyboard shown in the chat.
-</div>
+<div class="studio-container">
+    <h1>Response buttons</h1>
+    <p>Select an existing command, then configure the buttons shown below its reply.</p>
 
-{% if errors %}
-<div class="alert alert-danger">
-    <strong>Please fix the following</strong>
-    <ul>
-    {% for error in errors %}
-        <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
-</div>
-{% endif %} 
+    <div class="alert alert-info" style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px; margin-bottom: 20px; border-radius: 4px; color: #1e40af; font-size: 14px;">
+        After changing response buttons, run /start in Telegram to refresh the keyboard shown in the chat.
+    </div>
 
-<!-- ШАГ 1: ВЫБОР ОСНОВНОЙ КОМАНДЫ -->
-<div class="card mb-4 shadow-sm">
-    <div class="card-body">
-        <h2 class="h5 mb-3">1. Выберите команду для настройки кнопок</h2>
-        <form method="GET" action="/response-buttons" class="d-flex gap-2">
-            <select name="command_id" class="form-select" onchange="this.form.submit()">
+    {% if errors %}
+    <div class="alert alert-danger" style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin-bottom: 20px; border-radius: 4px; color: #991b1b; font-size: 14px;">
+        <strong>Please fix the following</strong>
+        <ul>
+        {% for error in errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %} 
+
+    <!-- ШАГ 1: ВЫБОР ОСНОВНОЙ КОМАНДЫ -->
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
+        <h2 class="h5" style="margin-top:0; margin-bottom: 12px; font-size: 16px;">1. Выберите команду для настройки кнопок</h2>
+        <form method="GET" action="/response-buttons" style="display: flex; gap: 10px;">
+            <select name="command_id" class="select-box" style="margin: 0; flex-grow: 1;" onchange="this.form.submit()">
                 <option value="">-- Выберите команду из списка --</option>
                 {% for cmd in commands %}
                     <option value="{{ cmd.id }}" {% if selected and selected.id == cmd.id %}selected{% endif %}>
@@ -33,101 +148,91 @@
                     </option>
                 {% endfor %}
             </select>
-            <button type="submit" class="btn btn-secondary">Выбрать</button>
+            <button type="submit" class="btn-main" style="background: #64748b;">Выбрать</button>
         </form>
     </div>
-</div>
 
-<!-- ШАГ 2: НАСТРОЙКА КНОПОК В ВИДЕ СЕТКИ (КОЛОНКИ) -->
-{% if selected %}
-<form method="POST" action="/response-buttons">
-    <input type="hidden" name="command_id" value="{{ selected.id }}">
+    <!-- ШАГ 2: НАСТРОЙКА КНОПОК -->
+    {% if selected %}
+    <form method="POST" action="/response-buttons">
+        <input type="hidden" name="command_id" value="{{ selected.id }}">
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <div>
-            <h2>2. Настройка расположения кнопок для /{{ selected.name }}</h2>
-            <p class="text-muted small m-0">Отметьте нужные команды галочками, укажите номер строки (Ряд) и позицию в ней (Порядковый номер).</p>
-        </div>
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary px-4 shadow-sm">Save response buttons</button> 
-            {% if selected.keyboard %} 
-                <button type="submit" name="clear" value="1" class="btn btn-outline-danger">Remove buttons</button> 
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Начало сетки колонок -->
-    <div class="row pt-3">
-    {% for command in target_commands %} 
-        {# Логика автоматического определения текущих координат кнопки из базы данных #} 
-        {% set current_row = namespace(value=0) %} 
-        {% set current_pos = namespace(value=0) %} 
-        {% set is_checked = false %} 
-        
-        {% if selected.keyboard %} 
-            {% for row in selected.keyboard %} 
-                {% set row_loop = loop %} 
-                {% for item in row %} 
-                    {% if item == '/' ~ command.name %} 
-                        {% set current_row.value = row_loop.index0 %} 
-                        {% set current_pos.value = loop.index0 %} 
-                        {% set is_checked = true %} 
-                    {% endif %} 
-                {% endfor %} 
-            {% endfor %} 
-        {% endif %}
-
-        <!-- Каждая кнопка теперь занимает 4 колонки из 12 на больших экранах (т.е. 3 кнопки в ряд) -->
-        <!-- И 6 колонок из 12 на средних экранах (т.е. 2 кнопки в ряд) -->
-        <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card h-100 shadow-sm border {% if is_checked %}border-primary bg-light{% endif %}">
-                <div class="card-body d-flex flex-column justify-content-between p-3">
-                    
-                    <!-- Верхняя часть: Чекбокс и название -->
-                    <div class="form-check m-0 mb-3">
-                        <input class="form-check-input" type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if is_checked %}checked{% endif %}>
-                        <label class="form-check-label ms-2 d-block" for="cmd_{{ command.name }}">
-                            /<strong>{{ command.name }}</strong>
-                            <span class="text-muted small d-block mt-1" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                                {{ command.description or command.reply_type }}
-                            </span>
-                        </label>
-                    </div>
-                    
-                    <!-- Нижняя часть: Поля ввода координат -->
-                    <div class="d-flex align-items-center justify-content-between pt-2 border-top gap-2">
-                        <div class="d-flex align-items-center flex-grow-1">
-                            <label for="row_{{ command.name }}" class="me-2 text-muted small">Ряд:</label>
-                            <input type="number" name="row_{{ command.name }}" id="row_{{ command.name }}" class="form-control form-control-sm text-center" style="width: 55px;" value="{{ current_row.value }}" min="0">
-                        </div>
-                        <div class="d-flex align-items-center flex-grow-1 justify-content-end">
-                            <label for="pos_{{ command.name }}" class="me-2 text-muted small">Поз:</label>
-                            <input type="number" name="pos_{{ command.name }}" id="pos_{{ command.name }}" class="form-control form-control-sm text-center" style="width: 55px;" value="{{ current_pos.value }}" min="0">
-                        </div>
-                    </div>
-
-                </div>
+        <div style="display: flex; justify-content-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 10px;">
+            <div>
+                <h2 style="margin: 0; font-size: 18px;">2. Настройка расположения кнопок для /{{ selected.name }}</h2>
+                <p class="text-muted small" style="margin: 5px 0 0 0; color: #64748b; font-size: 13px;">Отметьте нужные команды галочками и настройте их положение в сетке справа.</p>
             </div>
         </div>
-    {% endfor %}
-    </div>
 
-    <!-- Дублирующие кнопки сохранения в самом низу страницы для удобства при длинных списках -->
-    <div class="mt-4 pt-3 border-top d-flex gap-2">
-        <button type="submit" class="btn btn-primary px-4 shadow-sm">Save response buttons</button> 
-        {% if selected.keyboard %} 
-            <button type="submit" name="clear" value="1" class="btn btn-outline-danger">Remove buttons</button> 
-        {% endif %}
-    </div>
-</form>
+        <div class="action-bar">
+            <button type="submit" class="btn-main">Save response buttons</button> 
+            {% if selected.keyboard %} 
+                <button type="submit" name="clear" value="1" class="btn-danger-custom">Remove buttons</button> 
+            {% endif %}
+        </div>
 
-{% else %}
-    <div class="text-center py-5 text-muted card shadow-sm">
-        <div class="card-body">
+        <!-- Сетка карточек (Гарантированные 3 колонки) -->
+        <div class="card-grid">
+        {% for command in target_commands %} 
+            {# Логика автоматического определения текущих координат кнопки #} 
+            {% set current_row = namespace(value=0) %} 
+            {% set current_pos = namespace(value=0) %} 
+            {% set is_checked = false %} 
+            
+            {% if selected.keyboard %} 
+                {% for row in selected.keyboard %} 
+                    {% set row_loop = loop %} 
+                    {% for item in row %} 
+                        {% if item == '/' ~ command.name %} 
+                            {% set current_row.value = row_loop.index0 %} 
+                            {% set current_pos.value = loop.index0 %} 
+                            {% set is_checked = true %} 
+                        {% endif %} 
+                    {% endfor %} 
+                {% endfor %} 
+            {% endif %}
+
+            <div class="custom-card {% if is_checked %}active{% endif %}">
+                <!-- Левая сторона: чекбокс и инфо -->
+                <div class="card-left">
+                    <div class="card-title">
+                        <input class="form-check-input-custom" type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if is_checked %}checked{% endif %}>
+                        <label style="cursor:pointer;" for="cmd_{{ command.name }}">/{{ command.name }}</label>
+                    </div>
+                    <div class="card-desc">
+                        {{ command.description or command.reply_type }}
+                    </div>
+                </div>
+                
+                <!-- Правая сторона: Настройки Ряда и Позиции прижатые к углу -->
+                <div class="card-right-settings">
+                    <div class="setting-item">
+                        <span>Ряд:</span>
+                        <input type="number" name="row_{{ command.name }}" value="{{ current_row.value }}" min="0">
+                    </div>
+                    <div class="setting-item">
+                        <span>Поз:</span>
+                        <input type="number" name="pos_{{ command.name }}" value="{{ current_pos.value }}" min="0">
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        </div>
+
+        <div class="action-bar" style="margin-top: 35px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <button type="submit" class="btn-main">Save response buttons</button> 
+            {% if selected.keyboard %} 
+                <button type="submit" name="clear" value="1" class="btn-danger-custom">Remove buttons</button> 
+            {% endif %}
+        </div>
+    </form>
+
+    {% else %}
+        <div class="text-center py-5 text-muted card" style="background: #ffffff; border: 1px solid #e2e8f0; padding: 40px; text-align: center; border-radius: 8px; color: #64748b;">
             <h3>Команда не выбрана</h3>
             <p>Выберите команду в выпадающем списке выше, чтобы настроить для неё сетку кнопок.</p>
         </div>
-    </div>
-{% endif %}
+    {% endif %}
+</div>
 
 {% endblock %}
