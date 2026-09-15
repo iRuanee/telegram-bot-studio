@@ -174,11 +174,11 @@
 
         <!-- Сетка карточек (Гарантированные 3 колонки) -->
         <div class="card-grid">
-                {% for command in target_commands %} 
-            {# Логика автоматического определения текущих координат кнопки #} 
+            {% for command in target_commands %} 
+            {# Используем namespace для всех переменных, чтобы они не сбрасывались после окончания циклов #} 
             {% set current_row = namespace(value=0) %} 
             {% set current_pos = namespace(value=0) %} 
-            {% set is_checked = false %} 
+            {% set check_state = namespace(active=false) %} 
             
             {% if selected.keyboard %} 
                 {% for row in selected.keyboard %} 
@@ -188,17 +188,18 @@
                         {% if item|string|replace("/", "")|trim == command.name|string|replace("/", "")|trim %} 
                             {% set current_row.value = row_loop.index0 %} 
                             {% set current_pos.value = loop.index0 %} 
-                            {% set is_checked = true %} 
+                            {% set check_state.active = true %} 
                         {% endif %} 
                     {% endfor %} 
                 {% endfor %} 
             {% endif %}
 
-            <div class="custom-card {% if is_checked %}active{% endif %}">
+            <!-- Теперь проверяем значение из namespace: check_state.active -->
+            <div class="custom-card {% if check_state.active %}active{% endif %}">
                 <!-- Левая сторона: чекбокс и инфо -->
                 <div class="card-left">
                     <div class="card-title">
-                        <input class="form-check-input-custom" type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if is_checked %}checked{% endif %}>
+                        <input class="form-check-input-custom" type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %}>
                         <label style="cursor:pointer;" for="cmd_{{ command.name }}">/{{ command.name }}</label>
                     </div>
                     <div class="card-desc">
