@@ -174,7 +174,7 @@
 
         <!-- Сетка карточек (Гарантированные 3 колонки) -->
         <div class="card-grid">
-        {% for command in target_commands %} 
+                {% for command in target_commands %} 
             {# Логика автоматического определения текущих координат кнопки #} 
             {% set current_row = namespace(value=0) %} 
             {% set current_pos = namespace(value=0) %} 
@@ -184,7 +184,8 @@
                 {% for row in selected.keyboard %} 
                     {% set row_loop = loop %} 
                     {% for item in row %} 
-                        {% if item == '/' ~ command.name %} 
+                        {# Очищаем обе строки от слэшей для 100% точного сравнения имен #}
+                        {% if item|string|replace("/", "")|trim == command.name|string|replace("/", "")|trim %} 
                             {% set current_row.value = row_loop.index0 %} 
                             {% set current_pos.value = loop.index0 %} 
                             {% set is_checked = true %} 
