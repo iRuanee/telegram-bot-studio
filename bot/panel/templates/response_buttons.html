@@ -155,6 +155,7 @@
     <!-- ШАГ 2: НАСТРОЙКА КНОПОК -->
     {% if selected %}
     <form method="POST" action="/response-buttons">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="hidden" name="command_id" value="{{ selected.id }}">
 
         <div style="display: flex; justify-content-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 10px;">
