@@ -45,7 +45,8 @@ CREATE TABLE IF NOT EXISTS commands (
     media_url    TEXT NOT NULL DEFAULT '',
     keyboard     JSONB,
     enabled      BOOLEAN NOT NULL DEFAULT TRUE,
-    show_in_menu BOOLEAN NOT NULL DEFAULT TRUE,
+    show_in_start BOOLEAN NOT NULL DEFAULT TRUE,
+    show_in_about BOOLEAN NOT NULL DEFAULT TRUE,
     created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -80,7 +81,7 @@ CREATE INDEX IF NOT EXISTS audit_log_created_at_idx
 
 COMMAND_COLUMNS = (
     "id, name, description, reply_type, reply_text, media_url, "
-    "keyboard, enabled, show_in_menu, created_at, updated_at"
+    "keyboard, enabled, show_in_start, show_in_about, created_at, updated_at"
 )
 
 
@@ -164,14 +165,15 @@ async def create_command(
     media_url: str,
     keyboard: list | None,
     enabled: bool,
-    show_in_menu: bool,
+    show_in_start: bool
+    show_in_about: bool
 ) -> dict:
     row = await pool.fetchrow(
         f"""
         INSERT INTO commands
             (name, description, reply_type, reply_text, media_url,
-             keyboard, enabled, show_in_menu)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+             keyboard, enabled, show_in_start, show_in_about)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING {COMMAND_COLUMNS};
         """,
         name,
@@ -181,7 +183,8 @@ async def create_command(
         media_url,
         json.dumps(keyboard) if keyboard else None,
         enabled,
-        show_in_menu,
+        show_in_start,
+        show_in_about,
     )
     return _command_to_dict(row)
 
@@ -197,7 +200,8 @@ async def update_command(
     media_url: str,
     keyboard: list | None,
     enabled: bool,
-    show_in_menu: bool,
+    show_in_start: bool
+    show_in_about: bool
 ) -> dict | None:
     async with pool.acquire() as conn, conn.transaction():
         old_name = await conn.fetchval(
@@ -239,7 +243,7 @@ async def update_command(
             f"""
             UPDATE commands SET
                 name = $2, description = $3, reply_type = $4, reply_text = $5,
-                media_url = $6, keyboard = $7, enabled = $8, show_in_menu = $9,
+                media_url = $6, keyboard = $7, enabled = $8, show_in_start = $9, show_in_about = $10
                 updated_at = now()
             WHERE id = $1
             RETURNING {COMMAND_COLUMNS};
@@ -252,7 +256,8 @@ async def update_command(
             media_url,
             json.dumps(keyboard) if keyboard else None,
             enabled,
-            show_in_menu,
+            show_in_start,
+            show_in_about,
         )
     return _command_to_dict(row) if row is not None else None
 

@@ -94,7 +94,8 @@ def _validate(
     reply_text = (form.get("reply_text") or "").strip()
     media_url = (form.get("media_url") or "").strip()
     enabled = form.get("enabled") == "on"
-    show_in_menu = form.get("show_in_menu") == "on"
+    show_in_start = form.get("show_in_start") == "on"
+    show_in_about = form.get("show_in_about") == "on"
 
     if not NAME_RE.match(name):
         errors.append("Name must be 1-32 chars: lowercase letters, digits, underscore.")
@@ -122,7 +123,8 @@ def _validate(
         "media_url": media_url,
         "keyboard": existing_keyboard,
         "enabled": enabled,
-        "show_in_menu": show_in_menu,
+        "show_in_start": show_in_start,
+        "show_in_about": show_in_about,
     }
     return values, errors
 
@@ -217,8 +219,12 @@ def create_app(application, settings) -> FastAPI:
                 "stats": {
                     "total": len(items),
                     "enabled": sum(bool(item["enabled"]) for item in items),
-                    "in_menu": sum(
-                        bool(item["enabled"] and item["show_in_menu"]) for item in items
+                    # ЗАМЕНЯЕМ СТАРЫЙ IN_MENU НА ДВА НОВЫХ ПОДФИЛЬТРА СТАТИСТИКИ:
+                    "in_start": sum(
+                        bool(item["enabled"] and item.get("show_in_start")) for item in items
+                    ),
+                    "in_about": sum(
+                        bool(item["enabled"] and item.get("show_in_about")) for item in items
                     ),
                     "buttons": len(button_items) + response_button_count,
                 },
@@ -226,6 +232,34 @@ def create_app(application, settings) -> FastAPI:
                 "csrf_token": get_csrf_token(request),
             },
         )
+
+    #@app.get("/", response_class=HTMLResponse, dependencies=[Depends(login_required)])
+    #async def index(request: Request):
+    #    pool = _get_pool(request)
+    #    items = await db.list_commands(pool) if pool is not None else []
+    #    button_items = await db.list_menu_buttons(pool) if pool is not None else []
+    #    response_button_count = sum(
+    #        len(row)
+    #        for item in items
+    #        for row in (item.get("keyboard") or [])
+    #    )
+    #    audit_items = await db.list_audit_log(pool, limit=8) if pool is not None else []
+    #    return templates.TemplateResponse(
+    #        "list.html",
+    #        {
+    #            "request": request,
+    #            "stats": {
+    #                "total": len(items),
+    #                "enabled": sum(bool(item["enabled"]) for item in items),
+    #                "in_menu": sum(
+    #                    bool(item["enabled"] and item["show_in_menu"]) for item in items
+    #                ),
+    #                "buttons": len(button_items) + response_button_count,
+    #            },
+    #            "audit_items": audit_items,
+    #            "csrf_token": get_csrf_token(request),
+    #        },
+    #    )
 
     @app.post("/activity/clear", dependencies=[Depends(login_required)])
     async def clear_activity(request: Request, csrf_token: str = Form("")):
@@ -822,7 +856,8 @@ def _empty_command() -> dict:
         "media_url": "",
         "keyboard": None,
         "enabled": True,
-        "show_in_menu": True,
+        "show_in_start": True,
+        "show_in_about": True,
     }
 
 

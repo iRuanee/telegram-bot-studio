@@ -48,16 +48,33 @@ def lookup(name: str) -> dict | None:
     return _REGISTRY.get(name.lower())
 
 
-def menu_commands() -> list[tuple[str, str]]:
-    """Return (name, description) pairs for commands that opt into the menu."""
+def start_menu_commands() -> list[tuple[str, str]]:
+    """Возвращает команды, разрешенные для показа в приветствии /start."""
     return [
-        (
-            cmd["name"], 
-            cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"]
-        )
+        (cmd["name"], cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"])
         for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
-        if cmd.get("show_in_menu")
+        if cmd.get("show_in_start")
     ]
+
+def about_menu_commands() -> list[tuple[str, str]]:
+    """Возвращает команды, разрешенные для показа в /about и эхо-ответах."""
+    return [
+        (cmd["name"], cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"])
+        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
+        if cmd.get("show_in_about")
+    ]
+
+
+#def menu_commands() -> list[tuple[str, str]]:
+#    """Return (name, description) pairs for commands that opt into the menu."""
+#    return [
+#        (
+#            cmd["name"], 
+#            cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"]
+#        )
+#        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
+#        if cmd.get("show_in_menu")
+#    ]
 
 
 #def menu_commands() -> list[tuple[str, str]]:

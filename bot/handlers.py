@@ -125,20 +125,43 @@ def _dynamic_commands_text() -> str:
         #previously ^^^: "\n\nAvailable menu commands:\n"
 
 
-def _dynamic_commands_keyboard() -> InlineKeyboardMarkup | None:
-    items = commands.menu_commands()
+def _start_commands_keyboard() -> InlineKeyboardMarkup | None:
+    items = commands.start_menu_commands() # Берем только для старта
     if not items:
         return None
-
     buttons = [
-        InlineKeyboardButton(
-            text=description if (description and description.strip()) else name,
-            callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}",
-        )
+        InlineKeyboardButton(text=description, callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}")
         for name, description in items
     ]
-    rows = [buttons[index : index + 2] for index in range(0, len(buttons), 2)]
+    rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
     return InlineKeyboardMarkup(rows)
+
+def _about_commands_keyboard() -> InlineKeyboardMarkup | None:
+    items = commands.about_menu_commands() # Берем только для общих ответов/about
+    if not items:
+        return None
+    buttons = [
+        InlineKeyboardButton(text=description, callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}")
+        for name, description in items
+    ]
+    rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
+    return InlineKeyboardMarkup(rows)
+
+
+#def _dynamic_commands_keyboard() -> InlineKeyboardMarkup | None:
+#    items = commands.menu_commands()
+#    if not items:
+#        return None
+#
+#    buttons = [
+#        InlineKeyboardButton(
+#            text=description if (description and description.strip()) else name,
+#            callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}",
+#        )
+#        for name, description in items
+#    ]
+#    rows = [buttons[index : index + 2] for index in range(0, len(buttons), 2)]
+#    return InlineKeyboardMarkup(rows)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -161,7 +184,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Предлагаем вам ознакомиться с основными нюансами, которые нужно знать перед регистрацией аккаунта на третье лицо.",
         reply_markup=_main_menu_keyboard(),
     )
-    dynamic_keyboard = _dynamic_commands_keyboard()
+    dynamic_keyboard = _start_commands_keyboard()
     if dynamic_keyboard is not None:
         await message.reply_text("Выберите команду:", reply_markup=dynamic_keyboard)
 
@@ -176,7 +199,7 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         ABOUT_TEXT
         + _dynamic_commands_text()
         + "\n\nВыберите интересующий вас раздел в меню ниже:",
-        reply_markup=_dynamic_commands_keyboard(),
+        reply_markup=_about_commands_keyboard(),
     )
 
 #async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -277,7 +300,7 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     # мы отправляем лаконичную дефолтную фразу и прикрепляем клавиатуру
     await message.reply_text(
         DEFAULT_ECHO_TEXT,
-        reply_markup=_dynamic_commands_keyboard(),
+        reply_markup=_about_commands_keyboard(),
     )
 
 #async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

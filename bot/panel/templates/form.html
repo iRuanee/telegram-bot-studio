@@ -35,8 +35,12 @@
             <span class="switch"><input type="checkbox" id="enabled" name="enabled" {% if values.enabled %}checked{% endif %}><i></i></span>
           </label>
           <label class="toggle-row">
-            <span><strong>Show in inline menu</strong><small>Display after /start and inside /help.</small></span>
-            <span class="switch"><input type="checkbox" id="show_in_menu" name="show_in_menu" {% if values.show_in_menu %}checked{% endif %}><i></i></span>
+            <span><strong>Show in inline menu</strong><small>Display after /start.</small></span>
+            <span class="switch"><input type="checkbox" id="show_in_start" name="show_in_start" {% if values.show_in_start %}checked{% endif %}><i></i></span>
+          </label>
+          <label class="toggle-row">
+            <span><strong>Show in inline menu</strong><small>Display inside /about.</small></span>
+            <span class="switch"><input type="checkbox" id="show_in_about" name="show_in_about" {% if values.show_in_about %}checked{% endif %}><i></i></span>
           </label>
         </div>
       </section>
