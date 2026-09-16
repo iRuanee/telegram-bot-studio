@@ -41,6 +41,8 @@ ABOUT_TEXT = """Доступные команды:
 #/help - Show help
 #/ping - Check bot status
 
+DEFAULT_ECHO_TEXT = "Возможности бота описаны в кнопках ниже:"
+
 DYNAMIC_CALLBACK_PREFIX = "command:"
 
 
@@ -169,12 +171,26 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if message is None:
         return
 
+    # Функция общих настроек /about оставляет оригинальное описание
     await message.reply_text(
         ABOUT_TEXT
         + _dynamic_commands_text()
-        + "\n\nЛюбое отправленное текстовое сообщение, автоматически вызывает подсказку /about.",
+        + "\n\nВыберите интересующий вас раздел в меню ниже:",
         reply_markup=_dynamic_commands_keyboard(),
     )
+
+#async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#    del context
+#    message = update.effective_message
+#    if message is None:
+#        return
+#
+#    await message.reply_text(
+#        ABOUT_TEXT
+#        + _dynamic_commands_text()
+#        + "\n\nЛюбое отправленное текстовое сообщение, автоматически вызывает подсказку /about.",
+#        reply_markup=_dynamic_commands_keyboard(),
+#    )
 
 # async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     #del context
@@ -252,14 +268,25 @@ async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     # Перенаправляем в эхо-обработчик (покажет подсказку)
     await echo_message(update, context)
 
-
 async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.effective_message
     if message is None or not message.text:
         return
 
-    # Автоматически вызываем подсказку со всеми доступными командами
-    await about(update, context)
+    # Вместо вызова олдскульной подсказки об аккаунтах на третье лицо,
+    # мы отправляем лаконичную дефолтную фразу и прикрепляем клавиатуру
+    await message.reply_text(
+        DEFAULT_ECHO_TEXT,
+        reply_markup=_dynamic_commands_keyboard(),
+    )
+
+#async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+#    message = update.effective_message
+#    if message is None or not message.text:
+#        return
+#
+#    # Автоматически вызываем подсказку со всеми доступными командами
+#    await about(update, context)
 
 #async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #    message = update.effective_message
