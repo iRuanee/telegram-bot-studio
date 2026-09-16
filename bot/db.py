@@ -165,8 +165,8 @@ async def create_command(
     media_url: str,
     keyboard: list | None,
     enabled: bool,
-    show_in_start: bool
-    show_in_about: bool
+    show_in_start: bool,
+    show_in_about: bool,
 ) -> dict:
     row = await pool.fetchrow(
         f"""
@@ -200,8 +200,8 @@ async def update_command(
     media_url: str,
     keyboard: list | None,
     enabled: bool,
-    show_in_start: bool
-    show_in_about: bool
+    show_in_start: bool,
+    show_in_about: bool,
 ) -> dict | None:
     async with pool.acquire() as conn, conn.transaction():
         old_name = await conn.fetchval(
