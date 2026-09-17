@@ -191,9 +191,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Предлагаем вам ознакомиться с основными нюансами, которые нужно знать перед регистрацией аккаунта на третье лицо.",
         reply_markup=_main_menu_keyboard(),
     )
-    dynamic_keyboard = _main_menu_keyboard()
+    dynamic_keyboard = _start_commands_keyboard()
     if dynamic_keyboard is not None:
-        await message.reply_text(reply_markup=dynamic_keyboard)
+        await message.reply_text("Выберите команду:", reply_markup=dynamic_keyboard)
 
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     del context
