@@ -1,125 +1,82 @@
-{% extends "base.html" %} 
-{% block title %}{{ title }} · Telegram Bot Studio{% endblock %} 
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ title }} · Telegram Bot Studio{% endblock %} {% block content %}
 
-<div class="mb-3">
-    <a href="/commands" class="btn btn-sm btn-outline-secondary">← Back to commands</a>
-</div>
+← Back to commands
 
-<h1>{{ title }}</h1>
-<p class="text-muted">Create the command and its reply here. Response buttons are managed separately.</p>
+# {{ title }}
 
-<div class="alert alert-info">
-    Changes apply instantly after saving.
-</div>
+Create the command and its reply here. Response buttons are managed separately.
 
-{% if errors %}
-<div class="alert alert-danger">
-    <strong>Please fix the following:</strong>
-    <ul class="m-0 mt-1">
-    {% for error in errors %}
-        <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
-</div>
-{% endif %} 
+Changes apply instantly {% if errors %}
+
+**Please fix the following**
+
+{% for error in errors %}
+
+- {{ error }}
+
+{% endfor %}
+
+{% endif %}
 
 <form method="POST" action="{{ action }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-    <div class="row">
-        <!-- ЛЕВАЯ КОЛОНКА: НАСТРОЙКИ КОМАНДЫ -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border mb-3">
-                <div class="card-body">
-                    <h2 class="h5 mb-3">⌘ Command</h2>
-                    <p class="text-muted small">Define how users discover this action.</p>
+  ⌘
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label fw-bold">Command name *Required*</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text">/</span>
-                            <input type="text" id="name" name="name" class="form-control" value="{{ values.name }}" {% if title == 'Edit command' %}readonly{% endif %} required>
-                        </div>
-                        <small class="text-muted d-block mt-1">Lowercase letters, numbers, and underscore only.</small>
-                    </div>
+  ## Command
 
-                    <div class="mb-3">
-                        <label for="description" class="form-label fw-bold">Label / description</label>
-                        <input type="text" id="description" name="description" class="form-control form-control-sm" value="{{ values.description }}">
-                        <small class="text-muted d-block mt-1">Shown in Telegram's command and inline menus.</small>
-                    </div>
+  Define how users discover this action.
 
-                    <hr>
+  Command name *Required*
 
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="enabled" id="enabled" {% if values.enabled %}checked{% endif %}>
-                        <label class="form-check-label fw-bold" for="enabled">Command enabled</label>
-                        <small class="text-muted d-block">Users can run this command.</small>
-                    </div>
+  /
+  <input type="text" id="name" name="name" value="{{ values.name }}" {% if title == 'Edit command' %}readonly{% endif %} required>
 
-                    <!-- ИСПРАВЛЕННЫЕ И РАЗДЕЛЕННЫЕ ЧЕКБОКСЫ -->
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="show_in_start" id="show_in_start" {% if values.show_in_start %}checked{% endif %}>
-                        <label class="form-check-label fw-bold" for="show_in_start">Отображать инлайн-кнопку в /start</label>
-                        <small class="text-muted d-block">Display after /start command.</small>
-                    </div>
+  Lowercase letters, numbers, and underscore only.
 
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="show_in_about" id="show_in_about" {% if values.show_in_about %}checked{% endif %}>
-                        <label class="form-check-label fw-bold" for="show_in_about">Отображать инлайн-кнопку в /about</label>
-                        <small class="text-muted d-block">Display inside /about menu list.</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+  Label / description
+  <input type="text" id="description" name="description" value="{{ values.description }}">
 
-        <!-- ПРАВАЯ КОЛОНКА: ОТВЕТ БОТА -->
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border mb-3">
-                <div class="card-body">
-                    <h2 class="h5 mb-3">↳ Reply</h2>
-                    <p class="text-muted small">Choose what the bot sends for this command.</p>
+  Shown in Telegram's command and inline menus.
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Reply Type</label>
-                        <div class="d-flex gap-3">
-                            {% for type in reply_types %}
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="reply_type" id="type_{{ type }}" value="{{ type }}" {% if values.reply_type == type %}checked{% endif %}>
-                                <label class="form-check-label text-capitalize" for="type_{{ type }}">
-                                    <strong>{{ type }}</strong>
-                                </label>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
+  <label><input type="checkbox" name="enabled" {% if values.enabled %}checked{% endif %}> **Command enabled**</label> Users can run this command.
+  
+  <!-- ВОЗВРАЩЕННЫЕ ОРИГИНАЛЬНЫЕ ЧЕКБОКСЫ В СТИЛЕ СТУДИИ -->
+  <label><input type="checkbox" name="show_in_start" {% if values.show_in_start %}checked{% endif %}> **Show buttons in inline menu**</label> Display after /start.
+  <label><input type="checkbox" name="show_in_about" {% if values.show_in_about %}checked{% endif %}> **Show commands help menu**</label> Display inside /about.
 
-                    <div class="mb-3">
-                        <label for="reply_text" class="form-label fw-bold">Message or caption *Required for text*</label>
-                        <textarea id="reply_text" name="reply_text" class="form-control form-control-sm" rows="5">{{ values.reply_text }}</textarea>
-                    </div>
+  ↳
 
-                    <div class="mb-3">
-                        <label for="media_url" class="form-label fw-bold">Media URL or Telegram file_id</label>
-                        <input type="text" id="media_url" name="media_url" class="form-control form-control-sm" value="{{ values.media_url }}">
-                    </div>
+  ## Reply
 
-                    {% if title == 'Edit command' %}
-                    <div class="alert alert-secondary p-2 mb-0 mt-3 small">
-                        <strong>Need buttons below this reply?</strong>
-                        <p class="m-0 mt-1">Open <a href="/response-buttons?command_id={{ values.id }}" class="fw-bold">Response Buttons →</a> feature to configure layout grid.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+  Choose what the bot sends for this command.
 
-    <div class="border-top pt-3 d-flex gap-2">
-        <button type="submit" class="btn btn-success fw-bold">✓ Save command</button>
-        <a href="/commands" class="btn btn-outline-secondary">Cancel</a>
-    </div>
+  {% for type in reply_types %}
+  <label><input type="radio" name="reply_type" value="{{ type }}" {% if values.reply_type == type %}checked{% endif %}> **{% if type == 'text' %}Aa{% elif type == 'photo' %}▧{% else %}▤{% endif %}** **{{ type|title }}** {% if type == 'text' %}Message{% elif type == 'photo' %}Image{% else %}File{% endif %}</label>
+  {% endfor %}
+
+  Message or caption *Required for text*
+
+  <textarea id="reply_text" name="reply_text" rows="5">{{ values.reply_text }}</textarea>
+
+  Response preview 0 characters
+
+  Media URL or Telegram file_id
+
+  ↗
+  <input type="text" id="media_url" name="media_url" value="{{ values.media_url }}">
+
+  ▦
+
+  **Need buttons below this reply?**
+
+  Save the command first, then select it from the Response Buttons feature—no command name typing required.
+
+  {% if title == 'Edit command' %}
+  <a href="/response-buttons?command_id={{ values.id }}">Open Response Buttons →</a>
+  {% endif %}
+
+  <a href="/commands">Cancel</a> <button type="submit">Save command ✓</button>
 </form>
 
 {% endblock %}
