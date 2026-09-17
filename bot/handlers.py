@@ -191,7 +191,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Предлагаем вам ознакомиться с основными нюансами, которые нужно знать перед регистрацией аккаунта на третье лицо.",
         reply_markup=_main_menu_keyboard(),
     )
-    dynamic_keyboard = _start_commands_keyboard()
+    dynamic_keyboard = _main_menu_keyboard()
     if dynamic_keyboard is not None:
         await message.reply_text("Выберите команду:", reply_markup=dynamic_keyboard)
 
@@ -202,7 +202,7 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
 
     #Извлекаем из реестра стартовую инлайн-клавиатуру (она автоматически берет только те команды, у которых в админке включен чекбокс show_in_start)
-    start_keyboard = _start_commands_keyboard()
+    start_keyboard = _main_menu_keyboard()
 
     # Функция общих настроек /about оставляет оригинальное описание и вызывает типовую клавиатуру
     await message.reply_text(
@@ -308,7 +308,7 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     # 1. Извлекаем из реестра стартовую инлайн-клавиатуру 
     # (она автоматически берет только те команды, у которых в админке включен чекбокс show_in_start)
-    start_keyboard = _start_commands_keyboard()
+    start_keyboard = _main_menu_keyboard()
 
     # 2. Отправляем лаконичную эхо-фразу, прикрепляя к ней стартовые инлайн-кнопки
     await message.reply_text(
