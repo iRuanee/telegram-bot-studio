@@ -193,7 +193,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     dynamic_keyboard = _main_menu_keyboard()
     if dynamic_keyboard is not None:
-        await message.reply_text("Выберите команду:", reply_markup=dynamic_keyboard)
+        await message.reply_text(reply_markup=dynamic_keyboard)
 
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     del context
