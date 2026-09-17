@@ -201,11 +201,15 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if message is None:
         return
 
-    # Функция общих настроек /about оставляет оригинальное описание
+    #Извлекаем из реестра стартовую инлайн-клавиатуру (она автоматически берет только те команды, у которых в админке включен чекбокс show_in_start)
+    start_keyboard = _start_commands_keyboard()
+
+    # Функция общих настроек /about оставляет оригинальное описание и вызывает типовую клавиатуру
     await message.reply_text(
         ABOUT_TEXT
         + _dynamic_commands_text()
         + "\n\nВыберите интересующий вас раздел в меню:",
+        reply_markup=start_keyboard,
     )
 
 #async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
