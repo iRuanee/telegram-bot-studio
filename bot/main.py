@@ -2,6 +2,8 @@
 
 import asyncio
 import logging
+import sys
+from pathlib import Path
 
 import uvicorn
 from telegram import Update
@@ -17,16 +19,30 @@ from bot.handlers import (
 )
 from bot.panel.app import create_app
 
+# Определяем путь к файлу логов в корне проекта
+_BASE_DIR = Path(__file__).resolve().parent.parent
+LOG_FILE_PATH = _BASE_DIR / "app_debug.log"
+
+# Полная конфигурация: пишем и в консоль, и в файл app_debug.log
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout),              # Вывод в консоль (как обычно)
+        logging.FileHandler(LOG_FILE_PATH, encoding="utf-8") # ЗАПИСЬ В ТЕКСТОВЫЙ ФАЙЛ
+    ]
+)
 
 logger = logging.getLogger(__name__)
+logger.info(f"Логирование успешно запущено. Файл логов: {LOG_FILE_PATH}")
 
 
-def configure_logging(level_name: str) -> None:
-    level = getattr(logging, level_name, logging.INFO)
-    logging.basicConfig(
-        format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
-        level=level,
-    )
+#def configure_logging(level_name: str) -> None:
+#   level = getattr(logging, level_name, logging.INFO)
+#   logging.basicConfig(
+#        format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
+#        level=level,
+#    )
 
 
 async def _connect_database(url: str, *, required: bool):
