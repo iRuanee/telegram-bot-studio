@@ -116,14 +116,21 @@ def _main_menu_keyboard() -> ReplyKeyboardMarkup:
 #        #previously ^^^ :   Choose a menu item
 
 
+#def _dynamic_commands_text() -> str:
+#    items = commands.menu_commands()
+#    if not items:
+#        return ""
+#    lines = [f"/{name} - {description}" for name, description in items]
+#    return "\n\nДоступные команды меню:\n" + "\n".join(lines) 
+#        #previously ^^^: "\n\nAvailable menu commands:\n"
+
 def _dynamic_commands_text() -> str:
-    items = commands.menu_commands()
+    # Заменили на about_menu_commands(), чтобы выводить только разрешенные для /about команды
+    items = commands.about_menu_commands()
     if not items:
         return ""
     lines = [f"/{name} - {description}" for name, description in items]
-    return "\n\nДоступные команды меню:\n" + "\n".join(lines) 
-        #previously ^^^: "\n\nAvailable menu commands:\n"
-
+    return "\n\nДоступные команды меню:\n" + "\n".join(lines)
 
 def _start_commands_keyboard() -> InlineKeyboardMarkup | None:
     items = commands.start_menu_commands() # Берем только для старта
@@ -438,7 +445,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
 
 async def set_bot_commands(application: Application) -> None:
     """Publish the built-in commands plus any panel-managed ones to Telegram."""
-    menu = list(BOT_COMMANDS) + commands.menu_commands()
+    menu = list(BOT_COMMANDS) + commands.about_menu_commands()
     await application.bot.set_my_commands(menu)
 
 
