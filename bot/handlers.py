@@ -302,12 +302,22 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if message is None or not message.text:
         return
 
-    # Вместо вызова олдскульной подсказки об аккаунтах на третье лицо,
-    # мы отправляем лаконичную дефолтную фразу и прикрепляем клавиатуру
-    await message.reply_text(
-        DEFAULT_ECHO_TEXT,
-        reply_markup=_about_commands_keyboard(),
-    )
+    # 1. Извлекаем из реестра команду "about" (или "start", если хотите привязать к ней)
+    command = commands.lookup("about")
+    
+    if command:
+        # Создаем копию словаря команды, чтобы не повредить глобальный реестр
+        custom_command = dict(command)
+        
+        # Подменяем текст ответа на вашу новую лаконичную фразу.
+        # Нижняя клавиатура (keyboard) при этом автоматически возьмется из настроек этой команды в админке!
+        custom_command["reply_text"] = DEFAULT_ECHO_TEXT
+        
+        # Отправляем сообщение через штатный метод — он сам переведет /команды на кнопках в Описания
+        await commands.send(message, custom_command)
+    else:
+        # Запасной вариант, если команда about почему-то не найдена в базе
+        await message.reply_text(DEFAULT_ECHO_TEXT)
 
 #async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #    message = update.effective_message
