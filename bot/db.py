@@ -243,7 +243,7 @@ async def update_command(
             f"""
             UPDATE commands SET
                 name = $2, description = $3, reply_type = $4, reply_text = $5,
-                media_url = $6, keyboard = $7, enabled = $8, show_in_start = $9, show_in_about = $10
+                media_url = $6, keyboard = $7, enabled = $8, show_in_start = $9, show_in_about = $10,
                 updated_at = now()
             WHERE id = $1
             RETURNING {COMMAND_COLUMNS};
