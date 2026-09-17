@@ -205,7 +205,7 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await message.reply_text(
         ABOUT_TEXT
         + _dynamic_commands_text()
-        + "\n\nВыберите интересующий вас раздел в меню ниже:",
+        + "\n\nВыберите интересующий вас раздел в меню:",
     )
 
 #async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

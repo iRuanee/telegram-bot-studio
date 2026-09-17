@@ -55,8 +55,8 @@ def start_menu_commands() -> list[tuple[str, str]]:
             cmd["name"], 
             cmd["description"].strip() if (cmd.get("description") and str(cmd["description"]).strip()) else cmd["name"]
         )
-        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
-        if cmd.get("show_in_start", True)  # Если поля нет в кэше, по умолчанию показываем (True)
+        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["id"])
+        if cmd.get("show_in_start", True)
     ]
 
 def about_menu_commands() -> list[tuple[str, str]]:
@@ -66,8 +66,8 @@ def about_menu_commands() -> list[tuple[str, str]]:
             cmd["name"], 
             cmd["description"].strip() if (cmd.get("description") and str(cmd["description"]).strip()) else cmd["name"]
         )
-        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
-        if cmd.get("show_in_about", True)  # Если поля нет в кэше, по умолчанию показываем (True)
+        for cmd in sorted(_REGISTRY.values(), key=lambda c: c["id"])
+        if cmd.get("show_in_about", True)
     ]
 
 

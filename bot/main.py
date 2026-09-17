@@ -2,8 +2,6 @@
 
 import asyncio
 import logging
-import sys
-from pathlib import Path
 
 import uvicorn
 from telegram import Update
@@ -19,32 +17,16 @@ from bot.handlers import (
 )
 from bot.panel.app import create_app
 
-_BASE_DIR = Path(__file__).resolve().parent.parent
-LOG_FILE_PATH = _BASE_DIR / "app_debug.log"
 
 logger = logging.getLogger(__name__)
 
-def configure_logging(log_level: str = "INFO") -> None:
-    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
 
+def configure_logging(level_name: str) -> None:
+    level = getattr(logging, level_name, logging.INFO)
     logging.basicConfig(
-        level=numeric_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout),              # Вывод в консоль
-            logging.FileHandler(LOG_FILE_PATH, encoding="utf-8") # Запись в app_debug.log
-        ]
+        format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
+        level=level,
     )
-    
-    logger.info(f"Логирование успешно перезапущено. Файл логов: {LOG_FILE_PATH}")
-
-
-#def configure_logging(level_name: str) -> None:
-#   level = getattr(logging, level_name, logging.INFO)
-#   logging.basicConfig(
-#        format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
-#        level=level,
-#    )
 
 
 async def _connect_database(url: str, *, required: bool):
