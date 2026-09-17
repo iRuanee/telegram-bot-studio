@@ -19,23 +19,25 @@ from bot.handlers import (
 )
 from bot.panel.app import create_app
 
-# Определяем путь к файлу логов в корне проекта
-_BASE_DIR = Path(__file__).resolve().parent.parent
-LOG_FILE_PATH = _BASE_DIR / "app_debug.log"
+def configure_logging(log_level: str = "INFO") -> None:
+    # Определяем путь к файлу логов в корне проекта
+    _BASE_DIR = Path(__file__).resolve().parent.parent
+    LOG_FILE_PATH = _BASE_DIR / "app_debug.log"
 
-# Полная конфигурация: пишем и в консоль, и в файл app_debug.log
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),              # Вывод в консоль (как обычно)
-        logging.FileHandler(LOG_FILE_PATH, encoding="utf-8") # ЗАПИСЬ В ТЕКСТОВЫЙ ФАЙЛ
-    ]
-)
+    # Переводим строковый уровень (например, "INFO", "DEBUG") в константу logging
+    numeric_level = getattr(logging, log_level.upper(), logging.INFO)
 
-logger = logging.getLogger(__name__)
-logger.info(f"Логирование успешно запущено. Файл логов: {LOG_FILE_PATH}")
+    logging.basicConfig(
+        level=numeric_level,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),              # Вывод в консоль
+            logging.FileHandler(LOG_FILE_PATH, encoding="utf-8") # Запись в файл логов
+        ]
+    )
 
+    # Сразу пишем в лог, что всё запустилось успешно
+    logging.getLogger(__name__).info(f"Логирование успешно запущено. Файл логов: {LOG_FILE_PATH}")
 
 #def configure_logging(level_name: str) -> None:
 #   level = getattr(logging, level_name, logging.INFO)
