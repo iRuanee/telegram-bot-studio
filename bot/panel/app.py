@@ -341,6 +341,8 @@ def create_app(application, settings) -> FastAPI:
         verify_csrf(request, form.get("csrf_token"))
         pool = _get_pool(request)
         existing = await db.get_command(pool, command_id) if pool is not None else None
+        
+        # Передаем существующую клавиатуру
         values, errors = _validate(
             form, existing_keyboard=existing.get("keyboard") if existing else None
         )
@@ -350,6 +352,10 @@ def create_app(application, settings) -> FastAPI:
             return _render_form(
                 request, f"/commands/{command_id}/edit", "Edit command", values, errors
             )
+            
+        # Удаляем из значений show_in_menu, если оно туда случайно затесалось из старых кусков
+        values.pop("show_in_menu", None)
+        
         await db.update_command(pool, command_id, **values)
         await _audit(
             request,
@@ -361,6 +367,7 @@ def create_app(application, settings) -> FastAPI:
         await _refresh(request)
         _flash(request, f"Command /{values['name']} was updated.")
         return RedirectResponse("/commands", status_code=303)
+
 
     @app.get(
         "/response-buttons",
@@ -830,6 +837,13 @@ def create_app(application, settings) -> FastAPI:
         )
 
     def _render_form(request, action, title, values, errors):
+        # Подстраховка: если открывается старая команда, гарантируем наличие новых полей в словаре
+        if isinstance(values, dict):
+            if "show_in_start" not in values:
+                values["show_in_start"] = values.get("show_in_menu", True)
+            if "show_in_about" not in values:
+                values["show_in_about"] = values.get("show_in_menu", True)
+        
         return templates.TemplateResponse(
             "form.html",
             {
