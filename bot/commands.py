@@ -51,17 +51,23 @@ def lookup(name: str) -> dict | None:
 def start_menu_commands() -> list[tuple[str, str]]:
     """Возвращает команды, разрешенные для показа в приветствии /start."""
     return [
-        (cmd["name"], cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"])
+        (
+            cmd["name"], 
+            cmd["description"].strip() if (cmd.get("description") and str(cmd["description"]).strip()) else cmd["name"]
+        )
         for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
-        if cmd.get("show_in_start")
+        if cmd.get("show_in_start", True)  # Если поля нет в кэше, по умолчанию показываем (True)
     ]
 
 def about_menu_commands() -> list[tuple[str, str]]:
     """Возвращает команды, разрешенные для показа в /about и эхо-ответах."""
     return [
-        (cmd["name"], cmd["description"] if (cmd.get("description") and cmd["description"].strip()) else cmd["name"])
+        (
+            cmd["name"], 
+            cmd["description"].strip() if (cmd.get("description") and str(cmd["description"]).strip()) else cmd["name"]
+        )
         for cmd in sorted(_REGISTRY.values(), key=lambda c: c["name"])
-        if cmd.get("show_in_about")
+        if cmd.get("show_in_about", True)  # Если поля нет в кэше, по умолчанию показываем (True)
     ]
 
 
