@@ -73,10 +73,10 @@
             </div>
           </div>
 
-          <!-- СЕТКА КАРТОЧЕК В 2 СТОЛБЦА -->
-          <div class="command-checklist">
+          <!-- СОВЕРШЕННО НОВАЯ СЕТКА КАРТОЧЕК (ИЗОЛИРОВАННАЯ ОТ ТЕМЫ) -->
+          <div class="custom-buttons-grid">
           {% for command in target_commands %} 
-              {# Гарантированная и отказоустойчивая сверка структуры клавиатуры #} 
+              {# Отказоустойчивая сверка структуры клавиатуры #} 
               {% set current_row = namespace(value="0") %} 
               {% set current_pos = namespace(value="0") %} 
               {% set check_state = namespace(active=false) %} 
@@ -96,37 +96,35 @@
                   {% endfor %} 
               {% endif %}
 
-              <!-- Контейнер строки-карточки полностью изолирован от внешних стилей -->
-              <div class="card-item-container {% if check_state.active %}active-status{% endif %}">
+              <!-- Изолированная строка-карточка с фиксированной высотой -->
+              <div class="studio-card-row {% if check_state.active %}is-active{% endif %}">
                   
-                  <!-- ЛЕВАЯ СТОРОНА: Чекбокс и текст команды -->
-                  <label for="cmd_{{ command.name }}" class="card-label-trigger">
-                      <input type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %} class="native-checkbox-fix">
-                      <i></i>
-                      <div class="card-text-block">
-                          <strong>/{{ command.name }}</strong>
-                          <small title="{{ command.description or command.reply_type }}">
+                  <!-- ЛЕВАЯ СТОРОНА: Стилизованный триггер чекбокса -->
+                  <label class="studio-checkbox-label" for="cmd_{{ command.name }}">
+                      <div class="studio-checkbox-box">
+                          <input type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %} class="studio-native-hide">
+                          <span class="studio-custom-checkmark"></span>
+                      </div>
+                      <div class="studio-card-info">
+                          <strong class="studio-cmd-name">/{{ command.name }}</strong>
+                          <span class="studio-cmd-desc" title="{{ command.description or command.reply_type }}">
                               {{ command.description or command.reply_type }}
-                          </small>
+                          </span>
                       </div>
                   </label>
                   
-                  <!-- ПРАВАЯ СТОРОНА: Прямо редактируемые DIV-блоки вместо конфликтующих INPUT -->
-                  <div class="coord-wrapper-fixed">
-                      <div class="coord-inner-box">
-                          <span class="coord-text-tag">Р:</span>
-                          <!-- Скрытое поле для отправки значения на сервер -->
+                  <!-- ПРАВАЯ СТОРОНА: Компактная горизонтальная плашка ввода -->
+                  <div class="studio-coord-badge">
+                      <div class="studio-coord-field">
+                          <span class="studio-coord-letter">Р:</span>
                           <input type="hidden" name="row_{{ command.name }}" id="hidden_row_{{ command.name }}" value="{{ current_row.value }}">
-                          <!-- Видимый, крупный, редактируемый DIV-блок, защищенный от style.css -->
-                          <div contenteditable="true" class="editable-coord-zone" oninput="document.getElementById('hidden_row_{{ command.name }}').value = this.innerText.trim();">{{ current_row.value }}</div>
+                          <div contenteditable="true" class="studio-editable-zone" oninput="document.getElementById('hidden_row_{{ command.name }}').value = this.innerText.trim();">{{ current_row.value }}</div>
                       </div>
-                      <div class="coord-vertical-line"></div>
-                      <div class="coord-inner-box">
-                          <span class="coord-text-tag">П:</span>
-                          <!-- Скрытое поле для отправки значения на сервер -->
+                      <div class="studio-coord-line"></div>
+                      <div class="studio-coord-field">
+                          <span class="studio-coord-letter">П:</span>
                           <input type="hidden" name="pos_{{ command.name }}" id="hidden_pos_{{ command.name }}" value="{{ current_pos.value }}">
-                          <!-- Видимый, крупный, редактируемый DIV-блок, защищенный от style.css -->
-                          <div contenteditable="true" class="editable-coord-zone" oninput="document.getElementById('hidden_pos_{{ command.name }}').value = this.innerText.trim();">{{ current_pos.value }}</div>
+                          <div contenteditable="true" class="studio-editable-zone" oninput="document.getElementById('hidden_pos_{{ command.name }}').value = this.innerText.trim();">{{ current_pos.value }}</div>
                       </div>
                   </div>
                   
@@ -150,116 +148,128 @@
 </div>
 {% endblock %}
 
-<!-- ИЗОЛЯЦИЯ СТИЛЕЙ И СНЯТИЕ ЭФФЕКТОВ БЛОКИРОВКИ С INPUT -->
+<!-- ГАРАНТИРОВАННЫЕ ИЗОЛИРОВАННЫЕ СТИЛИ (БЕЗ КОНФЛИКТОВ С КЛАССАМИ ТЕМЫ) -->
 <style type="text/css">
-  .command-checklist {
+  /* Сетка карточек в 2 столбца */
+  .custom-buttons-grid {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 12px !important;
-    margin: 8px 0 !important;
+    margin: 15px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  .card-item-container {
+  /* Контейнер карточки (Строгая горизонтальная линия) */
+  .studio-card-row {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    padding: 10px 14px !important;
-    border: 1px solid var(--border) !important;
+    padding: 12px 16px !important;
+    border: 1px solid var(--border, #e2e8f0) !important;
     border-radius: 12px !important;
     background: #ffffff !important;
-    position: relative !important;
-    transition: .15s ease !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
     box-sizing: border-box !important;
-    min-height: 56px !important;
+    transition: all 0.15s ease !important;
   }
-  
-  .card-item-container:hover {
+
+  .studio-card-row:hover {
     border-color: #cbd5e1 !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+    background: #f8fafc !important;
   }
 
-  .card-item-container.active-status {
+  /* Подсветка активной карточки */
+  .studio-card-row.is-active {
     border-color: #86ceee !important;
-    background: var(--primary-soft) !important;
+    background: var(--primary-soft, #f0f9ff) !important;
   }
 
-  .card-label-trigger {
+  /* Левый блок (Чекбокс + Текст) */
+  .studio-checkbox-label {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
-    gap: 10px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    background: transparent !important;
+    gap: 12px !important;
     cursor: pointer !important;
     flex: 1 !important;
     min-width: 0 !important;
-    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: auto !important;
   }
 
-  .card-text-block {
+  /* Область текста */
+  .studio-card-info {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
     min-width: 0 !important;
     flex: 1 !important;
     text-align: left !important;
   }
 
-  .card-text-block strong {
-    color: var(--text) !important;
+  .studio-cmd-name {
     font-size: 13px !important;
-    display: block !important;
+    font-weight: 700 !important;
+    color: var(--text, #0f172a) !important;
+    line-height: 1.2 !important;
+    margin: 0 !important;
   }
 
-  .card-text-block small {
-    margin-top: 2px !important;
-    color: var(--muted) !important;
+  .studio-cmd-desc {
     font-size: 11px !important;
-    font-weight: 400 !important;
-    display: block !important;
+    color: var(--muted, #64748b) !important;
+    margin-top: 3px !important;
+    white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+    width: 100% !important;
+    display: block !important;
   }
 
-  /* Защищенная плашка координат */
-  .coord-wrapper-fixed {
+  /* Компактная горизонтальная плашка для координат */
+  .studio-coord-badge {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     background: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
-    padding: 0 6px !important;
-    gap: 2px !important;
+    padding: 0 8px !important;
+    gap: 4px !important;
     height: 32px !important;
     width: 125px !important;
     min-width: 125px !important;
     max-width: 125px !important;
     box-sizing: border-box !important;
-    position: relative !important;
-    z-index: 9999 !important;
-    pointer-events: auto !important;
-    margin-left: 10px !important;
-  }
+    margin-left: 12px !important;
+}
 
-  .coord-inner-box {
+  .studio-coord-field {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     width: 50px !important;
     flex-grow: 1 !important;
-    pointer-events: auto !important;
-  }
+}
 
-  .coord-text-tag {
-    font-size: 12px !important;
+  .studio-coord-letter {
+    font-size: 11px !important;
     font-weight: 700 !important;
     color: #64748b !important;
     margin-right: 4px !important;
     user-select: none !important;
 }
 
-  .editable-coord-zone {
-    display: inline-block !important;
+  .studio-editable-zone {
     width: 100% !important;
-    min-width: 25px !important;
     height: 24px !important;
     line-height: 24px !important;
     font-size: 14px !important;
@@ -268,18 +278,16 @@
     text-align: center !important;
     outline: none !important;
     cursor: text !important;
-    pointer-events: auto !important;
-    background: #ffffff !important;
-    z-index: 10000 !important;
+    background: transparent !important;
 }
 
-  .editable-coord-zone:focus {
+  .studio-editable-zone:focus {
     background: #f0f7ff !important;
-    color: var(--primary) !important;
+    color: var(--primary, #3b82f6) !important;
     border-radius: 4px !important;
 }
 
-  .coord-vertical-line {
+  .studio-coord-line {
     width: 1px !important;
     height: 16px !important;
     background-color: #cbd5e1 !important;
@@ -287,11 +295,55 @@
     user-select: none !important;
 }
 
-  .native-checkbox-fix[type="checkbox"] {
+  .studio-checkbox-box {
+    position: relative !important;
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0 !important;
+}
+
+  .studio-native-hide {
     position: absolute !important;
     opacity: 0 !important;
-    width: 24px !important;
-    height: 24px !important;
-    z-index: -1 !important;
-    pointer-events: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    cursor: pointer !important;
+    margin: 0 !important;
+    z-index: 2 !important;
+}
+
+  .studio-custom-checkmark {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 18px !important;
+    height: 18px !important;
+    background: #ffffff !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    z-index: 1 !important;
+    transition: all 0.1s ease !important;
+    box-sizing: border-box !important;
+}
+
+  .studio-native-hide:checked ~ .studio-custom-checkmark {
+    background: var(--primary, #3b82f6) !important;
+    border-color: var(--primary, #3b82f6) !important;
+}
+
+  .studio-custom-checkmark:after {
+    content: "" !important;
+    position: absolute !important;
+    display: none !important;
+    left: 5px !important;
+    top: 2px !important;
+    width: 4px !important;
+    height: 8px !important;
+    border: solid white !important;
+    border-width: 0 2px 2px 0 !important;
+    transform: rotate(45deg) !important;
+}
+
+  .studio-native-hide:checked ~ .studio-custom-checkmark:after {
+    display: block !important;
 }
