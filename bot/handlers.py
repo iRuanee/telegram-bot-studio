@@ -286,13 +286,17 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         return
 
     pool = context.bot_data.get(DB_KEY)
-    response_keyboard = _start_response_keyboard()
+    
+    # ПРИНУДИТЕЛЬНО вызываем ту самую клавиатуру, которая идет при /start
+    main_keyboard = _main_menu_keyboard()
 
+    # Отправляем сообщение с главной стартовой клавиатурой
     await message.reply_text(
         DEFAULT_ECHO_TEXT,
-        reply_markup=response_keyboard,
+        reply_markup=main_keyboard,
     )
 
+    # Записываем взаимодействие в историю
     if pool:
         replied_at = datetime.datetime.now(datetime.timezone.utc)
         await db.log_user_interaction(
@@ -302,7 +306,7 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             user_message_type="text",
             user_text=message.text,
             reply_type="text",
-            reply_description="Эхо-ответ на произвольный текст",
+            reply_description="Ответ на произвольный пользовательский текст со стандартным меню",
             reply_command="echo",
             reply_text=DEFAULT_ECHO_TEXT,
             received_at=received_at,
