@@ -28,9 +28,10 @@
   <form method="POST" action="/export/download">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-    <div class="editor-layout">
+    <div class="editor-layout" style="display: flex !important; gap: 30px !important; align-items: flex-start !important; width: 100% !important;">
+      
       <!-- ЛЕВАЯ ЧАСТЬ: ОСНОВНЫЕ ПАРАМЕТРЫ -->
-      <div class="editor-main">
+      <div class="editor-main" style="flex: 1 !important; min-width: 0 !important;">
         
         <!-- СЕКЦИЯ 1: ВЫБОР ТАБЛИЦЫ -->
         <div class="card form-section">
@@ -42,25 +43,25 @@
             </div>
           </div>
           
-          <div class="response-types">
-            <label class="response-option">
-              <input type="radio" name="target_table" value="user_interactions" checked>
-              <div class="response-option-body">
-                <b>▤</b>
+          <div class="response-types" style="display: flex !important; gap: 16px !important; width: 100% !important;">
+            <label class="response-option" style="flex: 1 !important; cursor: pointer !important; margin: 0 !important;">
+              <input type="radio" name="target_table" value="user_interactions" checked style="margin-right: 8px !important;">
+              <div class="response-option-body" style="display: inline-flex !important; align-items: center !important; gap: 10px !important;">
+                <b style="font-size: 16px !important; color: var(--primary) !important;">▤</b>
                 <div>
-                  <strong>Таблица взаимодействий</strong>
-                  <small>История диалогов</small>
+                  <strong style="display: block !important; font-size: 13px !important;">Таблица Взаимодействий</strong>
+                  <small style="color: var(--muted) !important; font-size: 11px !important;">История диалогов</small>
                 </div>
               </div>
             </label>
             
-            <label class="response-option">
-              <input type="radio" name="target_table" value="users">
-              <div class="response-option-body">
-                <b>Aa</b>
+            <label class="response-option" style="flex: 1 !important; cursor: pointer !important; margin: 0 !important;">
+              <input type="radio" name="target_table" value="users" style="margin-right: 8px !important;">
+              <div class="response-option-body" style="display: inline-flex !important; align-items: center !important; gap: 10px !important;">
+                <b style="font-size: 16px !important; color: var(--primary) !important;">Aa</b>
                 <div>
-                  <strong>Таблица пользователей</strong>
-                  <small>Сортированная по полю last_seen</small>
+                  <strong style="display: block !important; font-size: 13px !important;">Таблица Пользователей</strong>
+                  <small style="color: var(--muted) !important; font-size: 11px !important;">Сортированная по полю last_seen</small>
                 </div>
               </div>
             </label>
@@ -78,12 +79,12 @@
           </div>
           
           <div class="field">
-            <label for="filter_tg_id">Telegram ID пользователя <span class="optional">(Оставьте пустым для выгрузки всех)</span></label>
-            <div class="input-prefix">
-              <span>ID</span>
-              <input type="text" id="filter_tg_id" name="filter_tg_id" placeholder="Например: 385146145">
+            <label for="filter_tg_id" style="font-weight: 600 !important; font-size: 13px !important; display: block !important; margin-bottom: 8px !important;">Telegram ID пользователя <span class="optional" style="font-weight: 400 !important; color: var(--muted) !important;">(Оставьте пустым для выгрузки всех)</span></label>
+            <div class="input-prefix" style="display: flex !important; align-items: center !important; border: 1px solid var(--border) !important; border-radius: 8px !important; background: #ffffff !important; overflow: hidden !important;">
+              <span style="background: var(--surface-soft) !important; border-right: 1px solid var(--border) !important; padding: 0 16px !important; height: 38px !important; line-height: 38px !important; font-weight: bold !important; color: var(--muted) !important; user-select: none !important;">ID</span>
+              <input type="text" id="filter_tg_id" name="filter_tg_id" placeholder="Например: 385146145" style="border: none !important; outline: none !important; padding: 0 12px !important; height: 38px !important; flex: 1 !important; font-size: 14px !important;">
             </div>
-            <div class="hint">Укажите числовой идентификатор аккаунта для точечного среза логов.</div>
+            <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 6px !important;">Укажите числовой идентификатор аккаунта для точечного среза логов.</div>
           </div>
         </div>
 
@@ -97,80 +98,56 @@
             </div>
           </div>
 
-          <label class="toggle-row">
-            <div>
-              <strong>Выгрузить таблицу целиком</strong>
-              <small>Игнорировать фильтры времени и скачать всю историю записей</small>
+          <!-- ФИКСАЦИЯ РАСПОЛОЖЕНИЯ ТУМБЛЕРА ПЕРЕКЛЮЧАТЕЛЯ -->
+          <div class="toggle-row" style="display: flex !important; align-items: center !important; justify-content: space-between !important; background: var(--surface-soft) !important; padding: 12px 16px !important; border-radius: 8px !important; border: 1px solid var(--border) !important; margin-bottom: 20px !important;">
+            <div style="display: flex !important; flex-direction: column !important; gap: 2px !important;">
+              <strong style="font-size: 13px !important; color: var(--text) !important;">Выгрузить таблицу целиком</strong>
+              <small style="font-size: 11px !important; color: var(--muted) !important;">Игнорировать фильтры времени и скачать всю историю записей</small>
             </div>
-            <div class="switch">
+            <div class="switch" style="margin: 0 !important; flex-shrink: 0 !important;">
               <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)">
               <i></i>
             </div>
-          </label>
+          </div>
 
-          <!-- БЛОК ДАТ (ДИHАМИЧЕСКИ ПРИГЛУШАЕТСЯ ПРИ ЧЕКБОКСЕ) -->
-          <div id="date_filters_block" style="margin-top: 20px; transition: .22s ease;">
-            <div class="field-grid two">
-              <div class="field">
-                <label>Начало периода (От)</label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="date" name="start_date">
-                  <input type="time" name="start_time">
+          <!-- БЛОК ДАТ (ИСПРАВЛЕНЫ ОТСТУПЫ И КONТУРЫ ИНПУТОВ) -->
+          <div id="date_filters_block" style="transition: .2s ease !important; width: 100% !important;">
+            <div class="field-grid two" style="display: flex !important; gap: 20px !important; width: 100% !important;">
+              
+              <div class="field" style="flex: 1 !important;">
+                <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Начало периода (От)</label>
+                <div style="display: flex !important; gap: 8px !important; width: 100% !important;">
+                  <input type="date" name="start_date" class="native-date-fix">
+                  <input type="time" name="start_time" class="native-date-fix">
                 </div>
               </div>
-              <div class="field">
-                <label>Конец периода (До)</label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="date" name="end_date">
-                  <input type="time" name="end_time">
+              
+              <div class="field" style="flex: 1 !important;">
+                <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Конец периода (До)</label>
+                <div style="display: flex !important; gap: 8px !important; width: 100% !important;">
+                  <input type="date" name="end_date" class="native-date-fix">
+                  <input type="time" name="end_time" class="native-date-fix">
                 </div>
               </div>
+              
             </div>
-            <div class="hint" style="margin-top: 10px;">Если время не указано вручную, бот автоматически применит диапазон с 00:00 по 23:59.</div>
+            <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 8px !important;">Если время не указано вручную, бот автоматически применит диапазон с 00:00 по 23:59.</div>
           </div>
 
         </div>
 
         <!-- КНОПКИ ДЕЙСТВИЯ -->
-        <div class="form-actions">
-          <a href="/commands" class="btn wizard-cancel">Отмена</a>
-          <button type="submit" class="btn btn-primary btn-large">Сгенерировать и скачать Excel ✓</button>
+        <div class="form-actions" style="display: flex !important; justify-content-between; align-items: center; margin-top: 30px !important;">
+          <a href="/commands" class="btn wizard-cancel" style="padding: 8px 16px !important;">Отмена</a>
+          <button type="submit" class="btn btn-primary btn-large" style="padding: 10px 24px !important; font-weight: bold !important;">Сгенерировать и скачать Excel ✓</button>
         </div>
 
       </div>
 
-      <!-- ПРАВАЯ ЧАСТЬ: ДЕКОРАТИВНОЕ ИНФО-ПРАВИЛО -->
-      <div class="preview-sticky">
-        <div class="preview-label">
-          <span>Справка системы</span>
-          <small>Формат XLSX</small>
+      <!-- ПРАВАЯ ЧАСТЬ: СТАБИЛИЗИРОВАННАЯ СПРАВКА С ФИКСИРОВАННОЙ ШИРИНОЙ -->
+      <div class="preview-sticky" style="width: 320px !important; min-width: 320px !important; max-width: 320px !important; flex-shrink: 0 !important; position: sticky !important; top: 20px !important;">
+        <div class="preview-label" style="display: flex !important; justify-content-between; align-items: center; margin-bottom: 10px !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 6px !important;">
+          <span style="font-size: 11px !important; font-weight: bold !important; color: var(--muted) !important; text-transform: uppercase !important;">Справка системы</span>
+          <small style="color: var(--muted) !important; font-size: 11px !important;">Формат XLSX</small>
         </div>
-        <div class="toast">
-          <span>i</span>
-          <div>
-            <strong>Генерация отчетов</strong>
-            <p>Выгружаемый файл полностью совместим с Excel и Google Таблицами. Кириллица кодируется в UTF-8 автоматически.</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </form>
-</div>
-
-<!-- ИНТЕРАКТИВНЫЙ СКРИПТ В СТИЛЕ КЛАССОВ ТЕМЫ -->
-<script>
-function toggleDateFields(checkbox) {
-    const block = document.getElementById('date_filters_block');
-    if (checkbox.checked) {
-        block.style.opacity = '0.35';
-        block.style.pointerEvents = 'none';
-        block.querySelectorAll('input').forEach(input => input.value = '');
-    } else {
-        block.style.opacity = '1';
-        block.style.pointerEvents = 'auto';
-    }
-}
-</script>
-
-{% endblock %}
+        <div class="toast" style="display: flex !important; gap: 12px !important; background: var(--surface) !important; border: 1px solid var(--border) !important; padding: 16px !important; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;">
