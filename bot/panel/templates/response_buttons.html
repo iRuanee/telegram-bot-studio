@@ -94,7 +94,7 @@
                   {% endfor %} 
               {% endif %}
 
-              <!-- Контейнер строки карточки отделяет label от полей ввода, возвращая им кликабельность -->
+              <!-- Контейнер изолирует label от полей ввода, возвращая им кликабельность -->
               <div class="card-item-container {% if check_state.active %}active-status{% endif %}">
                   
                   <!-- ЛЕВАЯ СТОРОНА: Включает галочку -->
@@ -288,4 +288,5 @@
     height: 20px !important;
     z-index: -1 !important;
 }
-</style>
+
+{% endblock %}
