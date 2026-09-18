@@ -1,70 +1,170 @@
-{% extends "base.html" %} 
-{% block title %}Экспорт данных · Telegram Bot Studio{% endblock %} 
+{% extends "base.html" %}
+{% block title %}Экспорт данных · Telegram Bot Studio{% endblock %}
 {% block content %}
 
-Bot content
-
-Экспорт данных
-
-Выберите интересующую вас таблицу, а также настройте фильтры по пользователю и временному промежутку.
-
-<form method="POST" action="/export/download">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-
-  📊
-
-  1. Выберите таблицу
-
-  <p>
-    <label><input type="radio" name="target_table" value="user_interactions" checked> Таблица истории взаимодействий (user_interactions)</label>
-  </p>
-  <p>
-    <label><input type="radio" name="target_table" value="users"> Таблица пользователей (users)</label>
-  </p>
-
-  🔍
-
-  2. Фильтр по пользователю
-
-  Оставьте пустым, чтобы выгрузить данные по всем посетителям.
-
-  Telegram ID посетителя:
-  <input type="text" name="filter_tg_id" placeholder="Например: 385146145">
-
-  ⚙️
-
-  3. Режим выгрузки данных
-
-  <p>
-    <label><input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)"> Выгрузить таблицу целиком</label> Игнорировать фильтры времени.
-  </p>
-
-  <div id="date_filters_block" style="transition: opacity 0.2s ease;">
-    📅
-
-    4. Временной промежуток
-
-    Оставьте поля времени пустыми, если хотите выгрузить данные за полные сутки.
-
-    Начало периода (От):
-    <input type="date" name="start_date"> <input type="time" name="start_time">
-
-    Конец периода (До):
-    <input type="date" name="end_date"> <input type="time" name="end_time">
+<div class="content-wrap">
+  <!-- ЗАГОЛОВОК СТРАНИЦЫ -->
+  <div class="page-heading">
+    <div>
+      <span class="eyebrow">Аналитика</span>
+      <h1>Экспорт данных в Excel</h1>
+      <p>Выберите интересующую вас таблицу, а также настройте фильтры по пользователю и временному промежутку.</p>
+    </div>
   </div>
 
-  <p style="margin-top: 30px;">
-    <a href="/" class="btn-link">Cancel</a> <button type="submit" style="background: transparent; border: 1px solid #cbd5e1; padding: 4px 12px; cursor: pointer; font-family: inherit; font-size: inherit;">Сгенерировать и скачать Excel ✓</button>
-  </p>
-</form>
+  <!-- БЛОК УВЕДОМЛЕНИЙ ОБ ОШИБКАХ -->
+  {% if errors %}
+  <div class="errors">
+    <strong>Пожалуйста, исправьте следующие ошибки:</strong>
+    <ul>
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
 
+  <!-- ГЛАВНАЯ ФОРМА НАСТРОЕК -->
+  <form method="POST" action="/export/download">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+    <div class="editor-layout">
+      <!-- ЛЕВАЯ ЧАСТЬ: ОСНОВНЫЕ ПАРАМЕТРЫ -->
+      <div class="editor-main">
+        
+        <!-- СЕКЦИЯ 1: ВЫБОР ТАБЛИЦЫ -->
+        <div class="card form-section">
+          <div class="form-section-title">
+            <span>01</span>
+            <div>
+              <h2>Выгружаемый сегмент</h2>
+              <p>Определите, какие данные вы хотите извлечь из базы данных.</p>
+            </div>
+          </div>
+          
+          <div class="response-types">
+            <label class="response-option">
+              <input type="radio" name="target_table" value="user_interactions" checked>
+              <div class="response-option-body">
+                <b>▤</b>
+                <div>
+                  <strong>Логи шагов</strong>
+                  <small>Взаимодействия</small>
+                </div>
+              </div>
+            </label>
+            
+            <label class="response-option">
+              <input type="radio" name="target_table" value="users">
+              <div class="response-option-body">
+                <b>Aa</b>
+                <div>
+                  <strong>Пользователи</strong>
+                  <small>По полю last_seen</small>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- СЕКЦИЯ 2: ФИЛЬТР ПО USER ID -->
+        <div class="card form-section">
+          <div class="form-section-title">
+            <span>02</span>
+            <div>
+              <h2>Фильтр по посетителю</h2>
+              <p>Вы можете выгрузить историю действий конкретного человека.</p>
+            </div>
+          </div>
+          
+          <div class="field">
+            <label for="filter_tg_id">Telegram ID пользователя <span class="optional">(Оставьте пустым для выгрузки всех)</span></label>
+            <div class="input-prefix">
+              <span>ID</span>
+              <input type="text" id="filter_tg_id" name="filter_tg_id" placeholder="Например: 385146145">
+            </div>
+            <div class="hint">Укажите числовой идентификатор аккаунта для точечного среза логов.</div>
+          </div>
+        </div>
+
+        <!-- СЕКЦИЯ 3: РЕЖИМ ВРЕМЕНИ -->
+        <div class="card form-section">
+          <div class="form-section-title">
+            <span>03</span>
+            <div>
+              <h2>Режим выгрузки данных</h2>
+              <p>Выберите полную копию или срез за конкретный часовой промежуток.</p>
+            </div>
+          </div>
+
+          <label class="toggle-row">
+            <div>
+              <strong>Выгрузить таблицу целиком</strong>
+              <small>Игнорировать фильтры времени и скачать всю историю записей</small>
+            </div>
+            <div class="switch">
+              <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)">
+              <i></i>
+            </div>
+          </label>
+
+          <!-- БЛОК ДАТ (ДИHАМИЧЕСКИ ПРИГЛУШАЕТСЯ ПРИ ЧЕКБОКСЕ) -->
+          <div id="date_filters_block" style="margin-top: 20px; transition: .22s ease;">
+            <div class="field-grid two">
+              <div class="field">
+                <label>Начало периода (От)</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="date" name="start_date">
+                  <input type="time" name="start_time">
+                </div>
+              </div>
+              <div class="field">
+                <label>Конец периода (До)</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="date" name="end_date">
+                  <input type="time" name="end_time">
+                </div>
+              </div>
+            </div>
+            <div class="hint" style="margin-top: 10px;">Если время не указано вручную, бот автоматически применит диапазон с 00:00 по 23:59.</div>
+          </div>
+
+        </div>
+
+        <!-- КНОПКИ ДЕЙСТВИЯ -->
+        <div class="form-actions">
+          <a href="/commands" class="btn wizard-cancel">Отмена</a>
+          <button type="submit" class="btn btn-primary btn-large">Сгенерировать и скачать Excel ✓</button>
+        </div>
+
+      </div>
+
+      <!-- ПРАВАЯ ЧАСТЬ: ДЕКОРАТИВНОЕ ИНФО-ПРАВИЛО -->
+      <div class="preview-sticky">
+        <div class="preview-label">
+          <span>Справка системы</span>
+          <small>Формат XLSX</small>
+        </div>
+        <div class="toast">
+          <span>i</span>
+          <div>
+            <strong>Генерация отчетов</strong>
+            <p>Выгружаемый файл полностью совместим с Excel и Google Таблицами. Кириллица кодируется в UTF-8 автоматически.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<!-- ИНТЕРАКТИВНЫЙ СКРИПТ В СТИЛЕ КЛАССОВ ТЕМЫ -->
 <script>
 function toggleDateFields(checkbox) {
     const block = document.getElementById('date_filters_block');
     if (checkbox.checked) {
-        block.style.opacity = '0.3';
+        block.style.opacity = '0.35';
         block.style.pointerEvents = 'none';
-        // Очищаем поля при отключении, чтобы данные не конфликтовали
         block.querySelectorAll('input').forEach(input => input.value = '');
     } else {
         block.style.opacity = '1';
