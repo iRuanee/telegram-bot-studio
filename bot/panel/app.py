@@ -775,7 +775,9 @@ def create_app(application, settings) -> FastAPI:
         request: Request,
         target_table: str = Form(...),
         start_date: str = Form(""),
+        start_time: str = Form(""),
         end_date: str = Form(""),
+        end_time: str = Form(""),
         filter_tg_id: str = Form(""),
         csrf_token: str = Form(""),
     ):
@@ -784,21 +786,25 @@ def create_app(application, settings) -> FastAPI:
         if pool is None:
             return RedirectResponse("/export", status_code=303)
 
-        # Валидация Telegram ID (если введен, переводим в int)
         telegram_id = None
         if filter_tg_id.strip():
             try:
                 telegram_id = int(filter_tg_id.strip())
             except ValueError:
-                # В случае ввода некорректного ID перенаправляем обратно с флэш-предупреждением
                 request.session["flash"] = {"message": "Telegram ID должен состоять только из цифр.", "kind": "error"}
                 return RedirectResponse("/export", status_code=303)
+
+        # Склеиваем дату и время, если время передано
+        full_start = f"{start_date}T{start_time}" if (start_date and start_time) else start_date
+        full_end = f"{end_date}T{end_time}" if (end_date and end_time) else end_date
 
         wb = Workbook()
         ws = wb.active
 
-        # Генерируем суффикс для имени файла на основе фильтров
-        date_suffix = f"_{start_date}_to_{end_date}" if (start_date or end_date) else "_all_time"
+        # Формируем безопасное имя файла
+        clean_start = full_start.replace(":", "-").replace("T", "_") if full_start else ""
+        clean_end = full_end.replace(":", "-").replace("T", "_") if full_end else ""
+        date_suffix = f"_{clean_start}_to_{clean_end}" if (full_start or full_end) else "_all_time"
         id_suffix = f"_user_{telegram_id}" if telegram_id else ""
 
         if target_table == "users":
@@ -806,7 +812,8 @@ def create_app(application, settings) -> FastAPI:
             headers = ["Telegram ID", "Username", "First Name", "Дата регистрации", "Последняя активность"]
             ws.append(headers)
             
-            rows = await db.get_users_by_date(pool, start_date, end_date, telegram_id)
+            # Передаем склеенные строки full_start и full_end в базу
+            rows = await db.get_users_by_date(pool, full_start, full_end, telegram_id)
             for row in rows:
                 ws.append([
                     row["telegram_id"],
@@ -826,7 +833,8 @@ def create_app(application, settings) -> FastAPI:
             ]
             ws.append(headers)
             
-            rows = await db.get_interactions_by_date(pool, start_date, end_date, telegram_id)
+            # Передаем склеенные строки full_start и full_end в базу
+            rows = await db.get_interactions_by_date(pool, full_start, full_end, telegram_id)
             for row in rows:
                 ws.append([
                     row["telegram_id"],
