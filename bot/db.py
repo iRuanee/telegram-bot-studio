@@ -478,7 +478,7 @@ async def log_user_interaction(
         received_at,
         replied_at
     )
-    
+
 
 async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None) -> list[dict]:
     """Возвращает список пользователей, отфильтрованных по дате создания аккаунта, ID и точному времени."""
@@ -489,13 +489,27 @@ async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date
     if telegram_id:
         params.append(telegram_id)
         conditions.append(f"telegram_id = ${len(params)}")
+        
     if start_date and start_date.strip():
-        # Текстовое поле datetime-local имеет формат "YYYY-MM-DDTHH:MM"
-        start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        # Проверяем, указал ли пользователь время (есть ли буква T)
+        if "T" in start_date:
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        else:
+            # Если время не указано, автоматически ставим 00:00:00
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").replace(
+                hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc
+            )
         params.append(start_dt)
         conditions.append(f"created_at >= ${len(params)}")
+        
     if end_date and end_date.strip():
-        end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        if "T" in end_date:
+            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        else:
+            # Если время не указано, автоматически ставим 23:59:59
+            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").replace(
+                hour=23, minute=59, second=59, microsecond=999999, tzinfo=datetime.timezone.utc
+            )
         params.append(end_dt)
         conditions.append(f"created_at <= ${len(params)}")
         
@@ -520,12 +534,24 @@ async def get_interactions_by_date(pool: asyncpg.Pool, start_date: str | None, e
     if telegram_id:
         params.append(telegram_id)
         conditions.append(f"telegram_id = ${len(params)}")
+        
     if start_date and start_date.strip():
-        start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        if "T" in start_date:
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        else:
+            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").replace(
+                hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc
+            )
         params.append(start_dt)
         conditions.append(f"received_at >= ${len(params)}")
+        
     if end_date and end_date.strip():
-        end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        if "T" in end_date:
+            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        else:
+            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").replace(
+                hour=23, minute=59, second=59, microsecond=999999, tzinfo=datetime.timezone.utc
+            )
         params.append(end_dt)
         conditions.append(f"received_at <= ${len(params)}")
         
