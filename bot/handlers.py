@@ -1,5 +1,6 @@
 """Telegram update handlers."""
 
+import datetime
 import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update
@@ -41,7 +42,7 @@ ABOUT_TEXT = """Доступные команды:
 #/help - Show help
 #/ping - Check bot status
 
-DEFAULT_ECHO_TEXT = "Возможности бота описаны в кнопках ниже:"
+DEFAULT_ECHO_TEXT = "Выберите интересующий вас раздел в меню:"
 
 DYNAMIC_CALLBACK_PREFIX = "command:"
 
@@ -174,6 +175,7 @@ def _about_commands_keyboard() -> InlineKeyboardMarkup | None:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message = update.effective_message
     user = update.effective_user
+    received_at = datetime.datetime.now(datetime.timezone.utc)
     if message is None or user is None:
         return
 
@@ -186,31 +188,70 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     name = user.first_name if user.first_name else "посетитель"
     greeting = "Здравствуйте" if is_new else "Добро пожаловать"
+    full_start_text = (f"{greeting}, {name}!\n\n"
+            "Предлагаем вам ознакомиться с основными нюансами, которые нужно знать перед регистрацией аккаунта на третье лицо.")
+    
     await message.reply_text(
-        f"{greeting}, {name}!\n\n"
-        "Предлагаем вам ознакомиться с основными нюансами, которые нужно знать перед регистрацией аккаунта на третье лицо.",
+        full_start_text,
         reply_markup=_main_menu_keyboard(),
     )
     dynamic_keyboard = _start_commands_keyboard()
     if dynamic_keyboard is not None:
         await message.reply_text("Выберите команду:", reply_markup=dynamic_keyboard)
+        pool = context.bot_data.get(DB_KEY)
+    if pool and user:
+        replied_at = datetime.datetime.now(datetime.timezone.utc)
+        await db.log_user_interaction(
+            pool,
+            telegram_id=user.id,
+            username=user.username,
+            user_message_type="command",
+            user_text="/start",
+            reply_type="text",
+            reply_description="Системное приветствие",
+            reply_command="start",
+            reply_text=full_start_text,
+            received_at=received_at,
+            replied_at=replied_at
+        )
 
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    received_at = datetime.datetime.now(datetime.timezone.utc)
     del context
     message = update.effective_message
-    if message is None:
+    user = update.effective_user
+    if message is None or user is None:
         return
 
     #Извлекаем из реестра стартовую инлайн-клавиатуру (она автоматически берет только те команды, у которых в админке включен чекбокс show_in_start)
     start_keyboard = _main_menu_keyboard()
 
-    # Функция общих настроек /about оставляет оригинальное описание и вызывает типовую клавиатуру
-    await message.reply_text(
+    full_about_text = (
         ABOUT_TEXT
         + _dynamic_commands_text()
-        + "\n\nВыберите интересующий вас раздел в меню:",
-        reply_markup=start_keyboard,
+        + "\n\nВыберите интересующий вас раздел в меню ниже:")
+
+    # Функция общих настроек /about оставляет оригинальное описание и вызывает типовую клавиатуру
+    await message.reply_text(
+        full_about_text
     )
+    pool = context.bot_data.get(DB_KEY)
+    user = update.effective_user
+    if pool and user:
+        replied_at = datetime.datetime.now(datetime.timezone.utc)
+        await db.log_user_interaction(
+            pool,
+            telegram_id=user.id,
+            username=user.username,
+            user_message_type="command",
+            user_text="/about",
+            reply_type="text",
+            reply_description="Информация о боте",
+            reply_command="about",
+            reply_text=full_about_text,
+            received_at=received_at,
+            replied_at=replied_at
+        )
 
 #async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #    del context
@@ -260,18 +301,19 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    received_at = datetime.datetime.now(datetime.timezone.utc)
     message = update.effective_message
-    if message is None or not message.text:
+    user = update.effective_user
+    if message is None or not message.text or user is None:
         return
 
+    pool = context.bot_data.get(DB_KEY)
     text = message.text.strip()
     
-    # 1. Проверка системной кнопки "Информация о боте"
     if text == MENU_ABOUT:
         await about(update, context)
         return
 
-    # 2. Проверка динамических кнопок: Текст Кнопки == Описание Команды в админке
     matched_command = None
     for cmd in commands._REGISTRY.values():
         if cmd.get("description") and cmd["description"].strip() == text:
@@ -280,41 +322,79 @@ async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
 
     if matched_command:
         await commands.send(message, matched_command)
+        if pool:
+            replied_at = datetime.datetime.now(datetime.timezone.utc)
+            await db.log_user_interaction(
+                pool,
+                telegram_id=user.id,
+                username=user.username,
+                user_message_type="response_button",
+                user_text=text,
+                reply_type=matched_command.get("reply_type", "text"),
+                reply_description=matched_command.get("description"),
+                reply_command=matched_command["name"],
+                reply_text=matched_command.get("reply_text") or "[Media Content]",
+                received_at=received_at,
+                replied_at=replied_at
+            )
         return
 
-    # 3. Проверка кнопок из таблицы menu_buttons (раздел глобального меню в админке)
     target = commands.button_target(text)
     if target is not None:
-        if target == "about":
-            await about(update, context)
-        elif target == "start":
-            await start(update, context)
-        else:
-            command = commands.lookup(target)
-            if command is None:
-                await message.reply_text("В данный момент эта команда недоступна.")
-            else:
-                await commands.send(message, command)
+        command = commands.lookup(target)
+        if command is not None:
+            await commands.send(message, command)
+            if pool:
+                replied_at = datetime.datetime.now(datetime.timezone.utc)
+                await db.log_user_interaction(
+                    pool,
+                    telegram_id=user.id,
+                    username=user.username,
+                    user_message_type="response_button",
+                    user_text=text,
+                    reply_type=command.get("reply_type", "text"),
+                    reply_description=command.get("description"),
+                    reply_command=target,
+                    reply_text=command.get("reply_text") or "[Media Content]",
+                    received_at=received_at,
+                    replied_at=replied_at
+                )
         return
 
-    # 4. Если это ни одна из кнопок, значит пользователь просто написал текст.
-    # Перенаправляем в эхо-обработчик (покажет подсказку)
     await echo_message(update, context)
 
+
 async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    received_at = datetime.datetime.now(datetime.timezone.utc)
     message = update.effective_message
-    if message is None or not message.text:
+    user = update.effective_user
+    if message is None or not message.text or user is None:
         return
 
-    # 1. Извлекаем из реестра стартовую инлайн-клавиатуру 
-    # (она автоматически берет только те команды, у которых в админке включен чекбокс show_in_start)
-    start_keyboard = _main_menu_keyboard()
+    pool = context.bot_data.get(DB_KEY)
+    response_keyboard = _start_response_keyboard()
 
-    # 2. Отправляем лаконичную эхо-фразу, прикрепляя к ней стартовые инлайн-кнопки
     await message.reply_text(
         DEFAULT_ECHO_TEXT,
-        reply_markup=start_keyboard,
+        reply_markup=response_keyboard,
     )
+
+    if pool:
+        replied_at = datetime.datetime.now(datetime.timezone.utc)
+        await db.log_user_interaction(
+            pool,
+            telegram_id=user.id,
+            username=user.username,
+            user_message_type="text",
+            user_text=message.text,
+            reply_type="text",
+            reply_description="Эхо-ответ на произвольный текст",
+            reply_command="echo",
+            reply_text=DEFAULT_ECHO_TEXT,
+            received_at=received_at,
+            replied_at=replied_at
+        )
+        
 
 #async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 #    message = update.effective_message
@@ -414,21 +494,36 @@ async def dynamic_command_dispatcher(
 async def dynamic_command_button(
     update: Update, context: ContextTypes.DEFAULT_TYPE
 ) -> None:
-    """Run a panel-managed command selected from an inline button."""
-    del context
+    received_at = datetime.datetime.now(datetime.timezone.utc)
     query = update.callback_query
-    if query is None or query.data is None:
+    user = update.effective_user
+    if query is None or query.data is None or user is None:
         return
 
-    name = query.data.removeprefix(DYNAMIC_CALLBACK_PREFIX)
+    pool = context.bot_data.get(DB_KEY)
+    name = query.data.replace(DYNAMIC_CALLBACK_PREFIX, "")
     command = commands.lookup(name)
-    if command is None:
-        await query.answer("Эта команда недоступна.", show_alert=True)
-        return
-
-    await query.answer()
-    if query.message is not None:
+    
+    if command is not None:
+        await query.answer()
         await commands.send(query.message, command)
+        
+        if pool:
+            replied_at = datetime.datetime.now(datetime.timezone.utc)
+            button_label = command.get("description") or f"Inline: /{name}"
+            await db.log_user_interaction(
+                pool,
+                telegram_id=user.id,
+                username=user.username,
+                user_message_type="inline_button",
+                user_text=button_label,
+                reply_type=command.get("reply_type", "text"),
+                reply_description=command.get("description"),
+                reply_command=name,
+                reply_text=command.get("reply_text") or "[Media Content]",
+                received_at=received_at,
+                replied_at=replied_at
+            )
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:

@@ -2,7 +2,7 @@
 
 import json
 import logging
-
+import datetime
 import asyncpg
 
 
@@ -79,6 +79,25 @@ CREATE INDEX IF NOT EXISTS audit_log_created_at_idx
     ON audit_log (created_at DESC);
 """
 
+CREATE_INTERACTIONS_TABLE = """
+CREATE TABLE IF NOT EXISTS user_interactions (
+    id                  BIGSERIAL PRIMARY KEY,
+    telegram_id         BIGINT NOT NULL,
+    username            TEXT,
+    user_message_type   TEXT NOT NULL, -- 'inline_button', 'command', 'response_button', 'text'
+    user_text           TEXT NOT NULL,
+    reply_type          TEXT NOT NULL, -- 'text', 'photo', 'document'
+    reply_description   TEXT,          -- Описание вызванной команды из админки
+    reply_command       TEXT NOT NULL, -- Системное имя команды (например, 'about')
+    reply_text          TEXT NOT NULL, -- Физический текст, отправленный ботом
+    received_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+    replied_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS user_interactions_telegram_id_idx ON user_interactions (telegram_id);
+CREATE INDEX IF NOT EXISTS user_interactions_received_at_idx ON user_interactions (received_at DESC);
+"""
+
+
 COMMAND_COLUMNS = (
     "id, name, description, reply_type, reply_text, media_url, "
     "keyboard, enabled, show_in_start, show_in_about, created_at, updated_at"
@@ -98,6 +117,7 @@ async def create_pool(dsn: str) -> asyncpg.Pool:
         await conn.execute(CREATE_COMMANDS_TABLE)
         await conn.execute(CREATE_MENU_BUTTONS_TABLE)
         await conn.execute(CREATE_AUDIT_LOG_TABLE)
+        await conn.execute(CREATE_INTERACTIONS_TABLE)
     logger.info("PostgreSQL pool ready (schema initialized).")
     return pool
 
@@ -423,3 +443,38 @@ async def list_audit_log(pool: asyncpg.Pool, *, limit: int = 20) -> list[dict]:
 async def clear_audit_log(pool: asyncpg.Pool) -> int:
     result = await pool.execute("DELETE FROM audit_log;")
     return int(result.rsplit(" ", 1)[-1])
+
+
+async def log_user_interaction(
+    pool: asyncpg.Pool,
+    *,
+    telegram_id: int,
+    username: str | None,
+    user_message_type: str,
+    user_text: str,
+    reply_type: str,
+    reply_description: str | None,
+    reply_command: str,
+    reply_text: str,
+    received_at: datetime.datetime,
+    replied_at: datetime.datetime
+) -> None:
+    """Записывает точную сквозную историю взаимодействия пользователя и ответов бота."""
+    await pool.execute(
+        """
+        INSERT INTO user_interactions 
+            (telegram_id, username, user_message_type, user_text, 
+             reply_type, reply_description, reply_command, reply_text, received_at, replied_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+        """,
+        telegram_id,
+        username,
+        user_message_type,
+        user_text,
+        reply_type,
+        reply_description,
+        reply_command,
+        reply_text,
+        received_at,
+        replied_at
+    )
