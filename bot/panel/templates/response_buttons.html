@@ -15,7 +15,7 @@
   <!-- БАННЕР-ПОДСКАЗКА В ОРИГИНАЛЬНОМ СТИЛЕ CSS -->
   <div class="info-banner">
     <span>i</span>
-    <p>После изменения структуры response-кнопок обязательно выполните команду <code>/start</code> in Telegram, чтобы обновить кэш клавиатуры в чате.</p>
+    <p>После изменения структуры response-кнопок обязательно выполните команду <code>/start</code> в Telegram, чтобы обновить кэш клавиатуры в чате.</p>
   </div>
 
   <!-- БЛОК ОШИБОК -->
@@ -44,7 +44,6 @@
       </div>
       
       <form method="GET" action="/response-buttons">
-        <!-- Кнопка "Выбрать команду" удалена, список сам отправляет форму при изменении -->
         <select name="command_id" class="select-box" style="margin-bottom: 0;" onchange="this.form.submit()">
           <option value="">-- Выберите команду из списка --</option>
           {% for cmd in commands %}
@@ -96,7 +95,8 @@
               {% endif %}
 
               <label {% if check_state.active %}class="active"{% endif %} style="display: flex; align-items: center; justify-content-between; gap: 12px; position: relative;">
-                  <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+                  <!-- Слой самого текста команды (клик ставит галочку) -->
+                  <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; position: relative; z-index: 1;">
                       <input type="checkbox" name="target_commands" value="{{ command.name }}" {% if check_state.active %}checked{% endif %}>
                       <i></i>
                       <div style="min-width: 0; flex: 1;">
@@ -107,7 +107,7 @@
                       </div>
                   </div>
                   
-                  <!-- КОРРЕКТНЫЙ, ПОЛНОСТЬЮ РЕДАКТИРУЕМЫЙ И КРУПНЫЙ БЛОК ВВОДА ЦИФР -->
+                  <!-- ГАРАНТИРОВАННО ВЫВЕДЕННЫЙ НА ПЕРЕДНИЙ ПЛАН И РЕДАКТИРУЕМЫЙ БЛОК КООРДИНАТ -->
                   <div class="coord-wrapper">
                       <div class="coord-box">
                           <span class="coord-tag">Р:</span>
@@ -123,7 +123,7 @@
           {% endfor %}
           </div>
 
-          <!-- ЕДИНСТВЕННЫЙ И ФИНАЛЬНЫЙ БЛОК КНОПОК СОХРАНЕНИЯ (НИЖНИЙ) -->
+          <!-- НИЖНИЙ БЛОК КНОПОК СОХРАНЕНИЯ -->
           <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content-end; gap: 10px;">
             {% if selected.keyboard %} 
                 <button type="submit" name="clear" value="1" class="btn btn-danger">Удалить всё</button> 
@@ -146,63 +146,83 @@
   </div>
 </div>
 
-<!-- ЖЕСТКИЕ СТИЛИ ДЛЯ ВЫРАВНИВАНИЯ И СТАБИЛИЗАЦИИ БЛОКА ЦИФР -->
+<!-- ЖЕСТКАЯ СИСТЕМНАЯ ИЗОЛЯЦИЯ И ВЫВЕДЕНИЕ СЛОЯ НАПЕРЕД -->
 <style>
-  /* Новый изолированный блок-контейнер для координат */
   .coord-wrapper {
     display: flex !important;
     align-items: center !important;
     background: #ffffff !important;
-    border: 1px solid #dce4ec !important;
+    border: 1px solid #cdd5df !important;
     border-radius: 8px !important;
     padding: 2px 6px !important;
-    gap: 4px !important;
-    height: 34px !important;
-    width: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
+    gap: 2px !important;
+    height: 32px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
     box-sizing: border-box !important;
-    z-index: 10 !important;
+    
+    /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Выводим плашку на самый передний план над скрытым инпутом темы */
+    position: relative !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important; 
   }
 
   .coord-box {
     display: flex !important;
     align-items: center !important;
-    width: 60px !important;
+    width: 50px !important;
     flex-grow: 1 !important;
+    position: relative !important;
+    z-index: 100000 !important;
+    pointer-events: auto !important;
   }
 
   .coord-tag {
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
     color: var(--muted) !important;
-    margin-right: 4px !important;
+    margin-right: 3px !important;
+    user-select: none !important;
   }
 
-  /* Полноценное текстовое поле, которое не сжимается браузером */
   .coord-input-text {
     width: 100% !important;
-    height: 26px !important;
+    height: 24px !important;
     border: none !important;
-    background: transparent !important;
+    background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
-    font-size: 14px !important;
+    font-size: 13px !important;
     font-weight: 700 !important;
     color: var(--text) !important;
     text-align: center !important;
     outline: none !important;
+    
+    /* Разрешаем текстовые события и фокус */
+    position: relative !important;
+    z-index: 100001 !important;
+    pointer-events: auto !important;
   }
 
   .coord-input-text:focus {
     color: var(--primary) !important;
+    background: #f7fcff !important;
   }
 
   .coord-divider {
     width: 1px !important;
-    height: 18px !important;
-    background-color: #dce4ec !important;
-    margin: 0 4px !important;
+    height: 16px !important;
+    background-color: #cbd5e1 !important;
+    margin: 0 2px !important;
+    user-select: none !important;
+  }
+
+  /* Исправление бага клика по второму столбцу карточек из-за абсолютного позиционирования инпутов в style.css */
+  .command-checklist label input[type="checkbox"] {
+    max-width: 30px !important;
+    width: 30px !important;
+    z-index: 0 !important;
   }
 </style>
 
