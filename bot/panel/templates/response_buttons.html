@@ -73,8 +73,8 @@
             </div>
           </div>
 
-          <!-- СЕТКА КАРТОЧЕК -->
-          <div class="command-checklist">
+          <!-- ПОЛНОСТЬЮ НОВАЯ СЕТКА КАРТОЧЕК (ИЗОЛИРОВАННАЯ ОТ СТАРЫХ КЛАССОВ ТЕМЫ) -->
+          <div class="grid-response-cards">
           {% for command in target_commands %} 
               {# Надежная логика определения координат из базы данных #} 
               {% set current_row = namespace(value="0") %} 
@@ -96,32 +96,36 @@
                   {% endfor %} 
               {% endif %}
 
-              <label {% if check_state.active %}class="active"{% endif %}>
-                  <!-- Нативный чекбокс и название команды -->
-                  <input type="checkbox" name="target_commands" value="{{ command.name }}" {% if check_state.active %}checked{% endif %}>
-                  <i></i>
-                  <div>
-                      <strong>/{{ command.name }}</strong>
-                      <small title="{{ command.description or command.reply_type }}">
-                          {{ command.description or command.reply_type }}
-                      </small>
+              <!-- Автономный контейнер строки-карточки без использования тегов label верхнего уровня -->
+              <div class="response-row-item {% if check_state.active %}is-checked{% endif %}">
+                  
+                  <!-- Левая сторона: Чекбокс и текст команды -->
+                  <div class="response-left-side" onclick="document.getElementById('cmd_{{ command.name }}').click();">
+                      <input type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %} class="response-native-box" onclick="event.stopPropagation();">
+                      <div class="response-text-content">
+                          <strong class="response-title-name">/{{ command.name }}</strong>
+                          <span class="response-desc-text" title="{{ command.description or command.reply_type }}">
+                              {{ command.description or command.reply_type }}
+                          </span>
+                      </div>
                   </div>
                   
-                  <!-- Компактная горизонтальная плашка для координат -->
-                  <div class="coord-badge-container" onclick="event.preventDefault(); return false;">
-                      <div class="coord-input-group">
-                          <span class="coord-prefix-text">Р:</span>
+                  <!-- Правая сторона: Стабильная горизонтальная плашка ввода -->
+                  <div class="response-badge-fixed" onclick="event.stopPropagation();">
+                      <div class="response-field-part">
+                          <span class="response-letter-tag">Р:</span>
                           <input type="hidden" name="row_{{ command.name }}" id="hidden_row_{{ command.name }}" value="{{ current_row.value }}">
-                          <div contenteditable="true" class="coord-text-field" oninput="document.getElementById('hidden_row_{{ command.name }}').value = this.innerText.trim();" onclick="event.stopPropagation();">{{ current_row.value }}</div>
+                          <div contenteditable="true" class="response-editable-text" oninput="document.getElementById('hidden_row_{{ command.name }}').value = this.innerText.trim();">{{ current_row.value }}</div>
                       </div>
-                      <div class="coord-vertical-split"></div>
-                      <div class="coord-input-group">
-                          <span class="coord-prefix-text">П:</span>
+                      <div class="response-split-line"></div>
+                      <div class="response-field-part">
+                          <span class="response-letter-tag">П:</span>
                           <input type="hidden" name="pos_{{ command.name }}" id="hidden_pos_{{ command.name }}" value="{{ current_pos.value }}">
-                          <div contenteditable="true" class="coord-text-field" oninput="document.getElementById('hidden_pos_{{ command.name }}').value = this.innerText.trim();" onclick="event.stopPropagation();">{{ current_pos.value }}</div>
+                          <div contenteditable="true" class="response-editable-text" oninput="document.getElementById('hidden_pos_{{ command.name }}').value = this.innerText.trim();">{{ current_pos.value }}</div>
                       </div>
                   </div>
-              </label>
+                  
+              </div>
           {% endfor %}
           </div>
 
@@ -139,4 +143,159 @@
 
   </div>
 </div>
+
+<!-- СТИЛИ ПОЛНОЙ ИЗОЛЯЦИИ ОТ ШТАТНОГО STYLE.CSS -->
+<style type="text/css">
+  /* Выстраиваем элементы в 2 колонки на странице */
+  .grid-response-cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin: 15px 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Карточка (Строго горизонтальный ряд с фиксированной высотой) */
+  .response-row-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--border, #e2e8f0) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    box-sizing: border-box !important;
+    transition: all 0.15s ease !important;
+  }
+
+  .response-row-item:hover {
+    border-color: #cbd5e1 !important;
+    background: #f8fafc !important;
+  }
+
+  /* Подсветка выбранной карточки */
+  .response-row-item.is-checked {
+    border-color: #86ceee !important;
+    background: var(--primary-soft, #f0f9ff) !important;
+  }
+
+  /* Блок чекбокса и текста слева */
+  .response-left-side {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    cursor: pointer !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    user-select: none !important;
+  }
+
+  /* Нативный аккуратный чекбокс */
+  .response-native-box {
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+  }
+
+  /* Блок с текстами команд */
+  .response-text-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+  }
+
+  .response-title-name {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--text, #0f172a) !important;
+    line-height: 1.2 !important;
+  }
+
+  .response-desc-text {
+    font-size: 11px !important;
+    color: var(--muted, #64748b) !important;
+    margin-top: 2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  /* Компактная горизонтальная серая плашка для ввода цифр */
+  .response-badge-fixed {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    background: var(--surface-soft, #f8fafc) !important;
+    border: 1px solid var(--border, #cbd5e1) !important;
+    border-radius: 6px !important;
+    padding: 0 6px !important;
+    gap: 4px !important;
+    height: 28px !important;
+    width: 115px !important;
+    min-width: 115px !important;
+    max-width: 115px !important;
+    box-sizing: border-box !important;
+    margin-left: 10px !important;
+    position: relative !important;
+    z-index: 50 !important;
+}
+
+  .response-field-part {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    width: 46px !important;
+    flex-grow: 1 !important;
+}
+
+  .response-letter-tag {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: #64748b !important;
+    margin-right: 3px !important;
+    user-select: none !important;
+}
+
+  .response-editable-text {
+    width: 100% !important;
+    height: 20px !important;
+    line-height: 20px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    text-align: center !important;
+    outline: none !important;
+    cursor: text !important;
+    background: transparent !important;
+}
+
+  .response-editable-text:focus {
+    background: #ffffff !important;
+    color: var(--primary, #3b82f6) !important;
+    box-shadow: 0 0 0 1px var(--primary) !important;
+    border-radius: 3px !important;
+}
+
+  .response-split-line {
+    width: 1px !important;
+    height: 14px !important;
+    background-color: var(--border, #cbd5e1) !important;
+    margin: 0 2px !important;user-select: none !important;
+}
+
 {% endblock %}
