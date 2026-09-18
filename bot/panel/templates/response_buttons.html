@@ -15,7 +15,7 @@
   <!-- БАННЕР-ПОДСКАЗКА В ОРИГИНАЛЬНОМ СТИЛЕ CSS -->
   <div class="info-banner">
     <span>i</span>
-    <p>После изменения структуры response-кнопок обязательно выполните команду <code>/start</code> в Telegram, чтобы обновить кэш клавиатуры в чате.</p>
+    <p>После изменения структуры response-кнопок обязательно выполните команду <code>/start</code> in Telegram, чтобы обновить кэш клавиатуры в чате.</p>
   </div>
 
   <!-- БЛОК ОШИБОК -->
@@ -34,17 +34,18 @@
   <div class="response-button-layout">
     
     <!-- ЛЕВАЯ КОЛОНКА: ВЫБОР ОСНОВНОЙ КОМАНДЫ -->
-    <div class="card form-section">
+    <div class="card form-section" style="height: fit-content;">
       <div class="form-section-title">
         <span>01</span>
         <div>
           <h2>Выберите команду</h2>
-          <p>Для какого действия настраивается меню?</p>
+          <p>При выборе команды страница обновится автоматически.</p>
         </div>
       </div>
       
       <form method="GET" action="/response-buttons">
-        <select name="command_id" class="select-box" style="margin-bottom: 12px;" onchange="this.form.submit()">
+        <!-- Кнопка "Выбрать команду" удалена, список сам отправляет форму при изменении -->
+        <select name="command_id" class="select-box" style="margin-bottom: 0;" onchange="this.form.submit()">
           <option value="">-- Выберите команду из списка --</option>
           {% for cmd in commands %}
               <option value="{{ cmd.id }}" {% if selected and selected.id == cmd.id %}selected{% endif %}>
@@ -52,7 +53,6 @@
               </option>
           {% endfor %}
         </select>
-        <button type="submit" class="btn btn-secondary" style="width: 100%;">Выбрать команду</button>
       </form>
     </div>
 
@@ -71,14 +71,6 @@
                 <h2>Настройка сетки для /{{ selected.name }}</h2>
                 <p>Отметьте нужные команды и задайте им координаты (Ряд и Позицию).</p>
               </div>
-            </div>
-            
-            <!-- КНОПКИ УПРАВЛЕНИЯ ВЕРХНИЕ -->
-            <div class="d-flex gap-2" style="display: flex; gap: 8px;">
-              <button type="submit" class="btn btn-primary btn-sm">Сохранить сетку ✓</button>
-              {% if selected.keyboard %}
-                <button type="submit" name="clear" value="1" class="btn btn-danger btn-sm">Удалить всё</button>
-              {% endif %}
             </div>
           </div>
 
@@ -103,7 +95,7 @@
                   {% endfor %} 
               {% endif %}
 
-              <label {% if check_state.active %}class="active"{% endif %} style="display: flex; align-items: center; justify-content-between; gap: 12px;">
+              <label {% if check_state.active %}class="active"{% endif %} style="display: flex; align-items: center; justify-content-between; gap: 12px; position: relative;">
                   <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
                       <input type="checkbox" name="target_commands" value="{{ command.name }}" {% if check_state.active %}checked{% endif %}>
                       <i></i>
@@ -115,30 +107,31 @@
                       </div>
                   </div>
                   
-                  <!-- БЛОК ВВОДА КООРДИНАТ С ИЗОЛИРОВАННЫМИ СТИЛЯМИ И ГАРАНТИРОВАННОЙ ШИРИНОЙ -->
-                  <div class="coord-inputs-container">
-                      <div class="coord-field-group">
-                          <span class="coord-label">Р:</span>
-                          <input type="number" name="row_{{ command.name }}" value="{{ current_row.value }}" min="0" class="no-spinners coord-input-box">
+                  <!-- КОРРЕКТНЫЙ, ПОЛНОСТЬЮ РЕДАКТИРУЕМЫЙ И КРУПНЫЙ БЛОК ВВОДА ЦИФР -->
+                  <div class="coord-wrapper">
+                      <div class="coord-box">
+                          <span class="coord-tag">Р:</span>
+                          <input type="text" name="row_{{ command.name }}" value="{{ current_row.value }}" class="coord-input-text">
                       </div>
-                      <div class="coord-field-group" style="border-left: 1px solid var(--border); padding-left: 8px;">
-                          <span class="coord-label">П:</span>
-                          <input type="number" name="pos_{{ command.name }}" value="{{ current_pos.value }}" min="0" class="no-spinners coord-input-box">
+                      <div class="coord-divider"></div>
+                      <div class="coord-box">
+                          <span class="coord-tag">П:</span>
+                          <input type="text" name="pos_{{ command.name }}" value="{{ current_pos.value }}" class="coord-input-text">
                       </div>
                   </div>
               </label>
           {% endfor %}
           </div>
 
-          <!-- НИЖНИЕ КНОПКИ ДЛЯ УДОБСТВА -->
-          <div class="form-actions" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid var(--border);">
-            <button type="submit" class="btn btn-primary">Save response buttons</button> 
+          <!-- ЕДИНСТВЕННЫЙ И ФИНАЛЬНЫЙ БЛОК КНОПОК СОХРАНЕНИЯ (НИЖНИЙ) -->
+          <div class="form-actions" style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content-end; gap: 10px;">
             {% if selected.keyboard %} 
-                <button type="submit" name="clear" value="1" class="btn btn-danger">Remove buttons</button> 
+                <button type="submit" name="clear" value="1" class="btn btn-danger">Удалить всё</button> 
             {% endif %}
+            <button type="submit" class="btn btn-primary btn-large">Сохранить сетку ✓</button> 
           </div>
         </div>
-      </form> parade
+      </form>
 
       {% else %}
       <!-- СОСТОЯНИЕ КОГДА КОМАНДА НЕ ВЫБРАНА -->
@@ -153,63 +146,63 @@
   </div>
 </div>
 
-<!-- ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ ИЗОЛЯЦИИ И ВЫРАВНИВАНИЯ ПОЛЕЙ ВВОДА -->
+<!-- ЖЕСТКИЕ СТИЛИ ДЛЯ ВЫРАВНИВАНИЯ И СТАБИЛИЗАЦИИ БЛОКА ЦИФР -->
 <style>
-  /* Изолированный контейнер для плашки Ряд/Позиция */
-  .coord-inputs-container {
-    display: flex !important;
-    gap: 8px !important;
-    flex-shrink: 0 !important;
-    background: var(--surface-soft) !important;
-    padding: 6px 10px !important;
-    border-radius: 8px !important;
-    border: 1px solid var(--border) !important;
-    align-items: center !important;
-    box-sizing: border-box !important;
-  }
-  
-  .coord-field-group {
+  /* Новый изолированный блок-контейнер для координат */
+  .coord-wrapper {
     display: flex !important;
     align-items: center !important;
-    gap: 4px !important;
-    box-sizing: border-box !important;
-  }
-
-  .coord-label {
-    font-size: 11px !important;
-    color: var(--muted) !important;
-    font-weight: 700 !important;
-    margin: 0 !important;
-    display: inline-block !important;
-  }
-
-  /* Жестко фиксируем свойства полей ввода, игнорируя глобальный CSS */
-  .coord-input-box {
-    width: 50px !important;
-    min-width: 50px !important;
-    max-width: 50px !important;
-    height: 28px !important;
-    padding: 2px 4px !important;
-    text-align: center !important;
-    border-radius: 6px !important;
-    border: 1px solid #dfe4ec !important;
-    font-weight: 600 !important;
-    color: var(--text) !important;
     background: #ffffff !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    display: inline-block !important;
+    border: 1px solid #dce4ec !important;
+    border-radius: 8px !important;
+    padding: 2px 6px !important;
+    gap: 4px !important;
+    height: 34px !important;
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
     box-sizing: border-box !important;
+    z-index: 10 !important;
   }
 
-  /* Скрываем стрелочки увеличения/уменьшения для полей ввода типа number */
-  .no-spinners::-webkit-outer-spin-button,
-  .no-spinners::-webkit-inner-spin-button {
-    -webkit-appearance: none !important;
-    margin: 0 !important;
+  .coord-box {
+    display: flex !important;
+    align-items: center !important;
+    width: 60px !important;
+    flex-grow: 1 !important;
   }
-  .no-spinners {
-    -moz-appearance: textfield !important;
+
+  .coord-tag {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: var(--muted) !important;
+    margin-right: 4px !important;
+  }
+
+  /* Полноценное текстовое поле, которое не сжимается браузером */
+  .coord-input-text {
+    width: 100% !important;
+    height: 26px !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    text-align: center !important;
+    outline: none !important;
+  }
+
+  .coord-input-text:focus {
+    color: var(--primary) !important;
+  }
+
+  .coord-divider {
+    width: 1px !important;
+    height: 18px !important;
+    background-color: #dce4ec !important;
+    margin: 0 4px !important;
   }
 </style>
 
