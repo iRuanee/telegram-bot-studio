@@ -115,15 +115,15 @@
                       </div>
                   </div>
                   
-                  <!-- БЛОК ВВОДА КООРДИНАТ (СТРОГО СПРАВА, СТИЛИЗОВАН ПОД INPUT-PREFIX) -->
-                  <div style="display: flex; gap: 6px; flex-shrink: 0; background: var(--surface-soft); padding: 4px; border-radius: 6px; border: 1px solid var(--border);">
+                  <!-- БЛОК ВВОДА КООРДИНАТ (РАСШИРЕННЫЙ И БЕЗОПАСНЫЙ) -->
+                  <div style="display: flex; gap: 8px; flex-shrink: 0; background: var(--surface-soft); padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border);">
                       <div style="display: flex; align-items: center; gap: 4px;">
-                          <span style="font-size: 10px; color: var(--muted); font-weight: 600;">Р:</span>
-                          <input type="number" name="row_{{ command.name }}" value="{{ current_row.value }}" min="0" style="width: 36px; height: 24px; padding: 2px; text-align: center; border-radius: 4px;">
+                          <span style="font-size: 11px; color: var(--muted); font-weight: 700;">Р:</span>
+                          <input type="number" name="row_{{ command.name }}" value="{{ current_row.value }}" min="0" class="no-spinners" style="width: 55px; height: 28px; padding: 2px 4px; text-align: center; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; color: var(--text);">
                       </div>
-                      <div style="display: flex; align-items: center; gap: 4px; border-left: 1px solid var(--border); padding-left: 6px;">
-                          <span style="font-size: 10px; color: var(--muted); font-weight: 600;">П:</span>
-                          <input type="number" name="pos_{{ command.name }}" value="{{ current_pos.value }}" min="0" style="width: 36px; height: 24px; padding: 2px; text-align: center; border-radius: 4px;">
+                      <div style="display: flex; align-items: center; gap: 4px; border-left: 1px solid var(--border); padding-left: 8px;">
+                          <span style="font-size: 11px; color: var(--muted); font-weight: 700;">П:</span>
+                          <input type="number" name="pos_{{ command.name }}" value="{{ current_pos.value }}" min="0" class="no-spinners" style="width: 55px; height: 28px; padding: 2px 4px; text-align: center; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; color: var(--text);">
                       </div>
                   </div>
               </label>
@@ -152,5 +152,17 @@
 
   </div>
 </div>
+
+<!-- ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ СКРЫТИЯ СТРЕЛОЧЕК БРАУЗЕРА -->
+<style>
+  .no-spinners::-webkit-outer-spin-button,
+  .no-spinners::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .no-spinners {
+    -moz-appearance: textfield;
+  }
+</style>
 
 {% endblock %}
