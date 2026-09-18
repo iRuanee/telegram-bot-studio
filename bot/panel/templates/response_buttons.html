@@ -73,7 +73,7 @@
             </div>
           </div>
 
-          <!-- СЕТКА ЧЕКБОКСОВ В 2 СТОЛБЦА ИЗ ВАШЕГО STYLE.CSS -->
+          <!-- СЕТКА КАРТОЧЕК В 2 СТОЛБЦА -->
           <div class="command-checklist">
           {% for command in target_commands %} 
               {# Логика автоматического определения координат из базы данных #} 
@@ -94,32 +94,35 @@
                   {% endfor %} 
               {% endif %}
 
-              <label {% if check_state.active %}class="active"{% endif %} style="display: flex; align-items: center; justify-content-between; gap: 12px; position: relative;">
-                  <!-- Слой самого текста команды (клик ставит галочку) -->
-                  <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; position: relative; z-index: 1;">
-                      <input type="checkbox" name="target_commands" value="{{ command.name }}" {% if check_state.active %}checked{% endif %}>
+              <!-- Контейнер строки карточки отделяет label от полей ввода, возвращая им кликабельность -->
+              <div class="card-item-container {% if check_state.active %}active-status{% endif %}">
+                  
+                  <!-- ЛЕВАЯ СТОРОНА: Включает галочку -->
+                  <label for="cmd_{{ command.name }}" class="card-label-trigger">
+                      <input type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %}>
                       <i></i>
-                      <div style="min-width: 0; flex: 1;">
+                      <div class="card-text-block">
                           <strong>/{{ command.name }}</strong>
-                          <small style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ command.description or command.reply_type }}">
+                          <small title="{{ command.description or command.reply_type }}">
                               {{ command.description or command.reply_type }}
                           </small>
                       </div>
+                  </label>
+                  
+                  <!-- ПРАВАЯ СТОРОНА: Поля ввода, полностью изолированные от действий чекбокса -->
+                  <div class="coord-wrapper-fixed">
+                      <div class="coord-inner-box">
+                          <span class="coord-text-tag">Р:</span>
+                          <input type="text" name="row_{{ command.name }}" value="{{ current_row.value }}" class="coord-field-input">
+                      </div>
+                      <div class="coord-vertical-line"></div>
+                      <div class="coord-inner-box">
+                          <span class="coord-text-tag">П:</span>
+                          <input type="text" name="pos_{{ command.name }}" value="{{ current_pos.value }}" class="coord-field-input">
+                      </div>
                   </div>
                   
-                  <!-- ГАРАНТИРОВАННО ВЫВЕДЕННЫЙ НА ПЕРЕДНИЙ ПЛАН И РЕДАКТИРУЕМЫЙ БЛОК КООРДИНАТ -->
-                  <div class="coord-wrapper">
-                      <div class="coord-box">
-                          <span class="coord-tag">Р:</span>
-                          <input type="text" name="row_{{ command.name }}" value="{{ current_row.value }}" class="coord-input-text">
-                      </div>
-                      <div class="coord-divider"></div>
-                      <div class="coord-box">
-                          <span class="coord-tag">П:</span>
-                          <input type="text" name="pos_{{ command.name }}" value="{{ current_pos.value }}" class="coord-input-text">
-                      </div>
-                  </div>
-              </label>
+              </div>
           {% endfor %}
           </div>
 
@@ -146,84 +149,143 @@
   </div>
 </div>
 
-<!-- ЖЕСТКАЯ СИСТЕМНАЯ ИЗОЛЯЦИЯ И ВЫВЕДЕНИЕ СЛОЯ НАПЕРЕД -->
+<!-- ЖЕСТКАЯ СИСТЕМНАЯ ИЗОЛЯЦИЯ CSS И ВЫВЕДЕНИЕ СЛОЯ НАПЕРЕД -->
 <style>
-  .coord-wrapper {
+  .command-checklist {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    margin: 8px 0 !important;
+  }
+
+  .card-item-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    position: relative !important;
+    transition: .15s ease !important;
+    box-sizing: border-box !important;
+    min-height: 56px !important;
+  }
+  
+  .card-item-container:hover {
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+  }
+
+  .card-item-container.active-status {
+    border-color: #86ceee !important;
+    background: var(--primary-soft) !important;
+  }
+
+  .card-label-trigger {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    cursor: pointer !important;
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 100% !important;
+  }
+
+  .card-text-block {
+    min-width: 0 !important;
+    flex: 1 !important;
+    text-align: left !important;
+  }
+
+  .card-text-block strong {
+    color: var(--text) !important;
+    font-size: 13px !important;
+    display: block !important;
+  }
+
+  .card-text-block small {
+    margin-top: 2px !important;
+    color: var(--muted) !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    display: block !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  .coord-wrapper-fixed {
     display: flex !important;
     align-items: center !important;
     background: #ffffff !important;
-    border: 1px solid #cdd5df !important;
+    border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
-    padding: 2px 6px !important;
-    gap: 2px !important;
+    padding: 0 8px !important;
+    gap: 4px !important;
     height: 32px !important;
-    width: 120px !important;
-    min-width: 120px !important;
-    max-width: 120px !important;
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
     box-sizing: border-box !important;
-    
-    /* КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: Выводим плашку на самый передний план над скрытым инпутом темы */
     position: relative !important;
-    z-index: 99999 !important;
-    pointer-events: auto !important; 
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+    margin-left: 10px !important;
   }
 
-  .coord-box {
+  .coord-inner-box {
     display: flex !important;
     align-items: center !important;
-    width: 50px !important;
+    width: 52px !important;
     flex-grow: 1 !important;
-    position: relative !important;
-    z-index: 100000 !important;
-    pointer-events: auto !important;
   }
 
-  .coord-tag {
-    font-size: 11px !important;
+  .coord-text-tag {
+    font-size: 12px !important;
     font-weight: 700 !important;
-    color: var(--muted) !important;
-    margin-right: 3px !important;
+    color: #64748b !important;
+    margin-right: 4px !important;
     user-select: none !important;
   }
 
-  .coord-input-text {
+  .coord-field-input {
     width: 100% !important;
     height: 24px !important;
     border: none !important;
     background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
-    font-size: 13px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
-    color: var(--text) !important;
+    color: #0f172a !important;
     text-align: center !important;
     outline: none !important;
-    
-    /* Разрешаем текстовые события и фокус */
-    position: relative !important;
-    z-index: 100001 !important;
-    pointer-events: auto !important;
+    box-shadow: none !important;
   }
 
-  .coord-input-text:focus {
+  .coord-field-input:focus {
     color: var(--primary) !important;
-    background: #f7fcff !important;
+    font-weight: 800 !important;
   }
 
-  .coord-divider {
+  .coord-vertical-line {
     width: 1px !important;
     height: 16px !important;
     background-color: #cbd5e1 !important;
-    margin: 0 2px !important;
+    margin: 0 4px !important;
     user-select: none !important;
   }
 
-  /* Исправление бага клика по второму столбцу карточек из-за абсолютного позиционирования инпутов в style.css */
-  .command-checklist label input[type="checkbox"] {
-    max-width: 30px !important;
-    width: 30px !important;
-    z-index: 0 !important;
-  }
+  .card-label-trigger input[type="checkbox"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+    z-index: -1 !important;
+}
 </style>
-
-{% endblock %}
