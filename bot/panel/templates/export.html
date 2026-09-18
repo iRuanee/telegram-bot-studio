@@ -2,11 +2,13 @@
 {% block title %}Экспорт данных · Telegram Bot Studio{% endblock %} 
 {% block content %}
 
-# Экспорт данных в Excel
+Bot content
+
+Экспорт данных
 
 Выберите интересующую вас таблицу, а также настройте фильтры по пользователю и временному промежутку.
 
-<form method="POST" action="/export/download" style="max-width: 500px; margin-top: 25px;">
+<form method="POST" action="/export/download">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
   📊
@@ -14,16 +16,10 @@
   1. Выберите таблицу
 
   <p>
-    <label>
-      <input type="radio" name="target_table" value="user_interactions" checked> 
-      Таблица истории взаимодействий (user_interactions)
-    </label>
+    <label><input type="radio" name="target_table" value="user_interactions" checked> Таблица истории взаимодействий (user_interactions)</label>
   </p>
   <p>
-    <label>
-      <input type="radio" name="target_table" value="users"> 
-      Таблица пользователей (users)
-    </label>
+    <label><input type="radio" name="target_table" value="users"> Таблица пользователей (users)</label>
   </p>
 
   🔍
@@ -33,52 +29,43 @@
   Оставьте пустым, чтобы выгрузить данные по всем посетителям.
 
   Telegram ID посетителя:
-  <input type="text" name="filter_tg_id" placeholder="Например: 385146145" style="display: block; width: 100%; margin-bottom: 20px; padding: 5px;">
+  <input type="text" name="filter_tg_id" placeholder="Например: 385146145">
 
   ⚙️
 
   3. Режим выгрузки данных
 
-  <!-- НАШ НОВЫЙ ЧЕКБОКС ДЛЯ ПОЛНОЙ ВЫГРУЗКИ КАТЕГОРИЙ -->
   <p>
-    <label>
-      <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)"> 
-      Выгрузить таблицу целиком (игнорировать фильтры времени)
-    </label>
+    <label><input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)"> Выгрузить таблицу целиком</label> Игнорировать фильтры времени.
   </p>
 
-  <div id="date_filters_block">
+  <div id="date_filters_block" style="transition: opacity 0.2s ease;">
     📅
-    
+
     4. Временной промежуток
-  
+
     Оставьте поля времени пустыми, если хотите выгрузить данные за полные сутки.
-  
+
     Начало периода (От):
-    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-      <input type="date" name="start_date" style="flex-grow: 2; padding: 5px;">
-      <input type="time" name="start_time" style="flex-grow: 1; padding: 5px;">
-    </div>
-  
+    <input type="date" name="start_date"> <input type="time" name="start_time">
+
     Конец периода (До):
-    <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-      <input type="date" name="end_date" style="flex-grow: 2; padding: 5px;">
-      <input type="time" name="end_time" style="flex-grow: 1; padding: 5px;">
-    </div>
+    <input type="date" name="end_date"> <input type="time" name="end_time">
   </div>
 
-  💾
-
-  <button type="submit" style="padding: 8px 20px; font-weight: bold; cursor: pointer;">Сгенерировать и скачать Excel ✓</button>
+  <p style="margin-top: 30px;">
+    <a href="/" class="btn-link">Cancel</a> <button type="submit" style="background: transparent; border: 1px solid #cbd5e1; padding: 4px 12px; cursor: pointer; font-family: inherit; font-size: inherit;">Сгенерировать и скачать Excel ✓</button>
+  </p>
 </form>
 
-<!-- Маленький удобный скрипт: визуально скрывает поля дат, если отмечен чекбокс полного экспорта -->
 <script>
 function toggleDateFields(checkbox) {
     const block = document.getElementById('date_filters_block');
     if (checkbox.checked) {
-        block.style.opacity = '0.4';
+        block.style.opacity = '0.3';
         block.style.pointerEvents = 'none';
+        // Очищаем поля при отключении, чтобы данные не конфликтовали
+        block.querySelectorAll('input').forEach(input => input.value = '');
     } else {
         block.style.opacity = '1';
         block.style.pointerEvents = 'auto';
