@@ -115,15 +115,15 @@
                       </div>
                   </div>
                   
-                  <!-- БЛОК ВВОДА КООРДИНАТ (РАСШИРЕННЫЙ И БЕЗОПАСНЫЙ) -->
-                  <div style="display: flex; gap: 8px; flex-shrink: 0; background: var(--surface-soft); padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border);">
-                      <div style="display: flex; align-items: center; gap: 4px;">
-                          <span style="font-size: 11px; color: var(--muted); font-weight: 700;">Р:</span>
-                          <input type="number" name="row_{{ command.name }}" value="{{ current_row.value }}" min="0" class="no-spinners" style="width: 55px; height: 28px; padding: 2px 4px; text-align: center; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; color: var(--text);">
+                  <!-- БЛОК ВВОДА КООРДИНАТ С ИЗОЛИРОВАННЫМИ СТИЛЯМИ И ГАРАНТИРОВАННОЙ ШИРИНОЙ -->
+                  <div class="coord-inputs-container">
+                      <div class="coord-field-group">
+                          <span class="coord-label">Р:</span>
+                          <input type="number" name="row_{{ command.name }}" value="{{ current_row.value }}" min="0" class="no-spinners coord-input-box">
                       </div>
-                      <div style="display: flex; align-items: center; gap: 4px; border-left: 1px solid var(--border); padding-left: 8px;">
-                          <span style="font-size: 11px; color: var(--muted); font-weight: 700;">П:</span>
-                          <input type="number" name="pos_{{ command.name }}" value="{{ current_pos.value }}" min="0" class="no-spinners" style="width: 55px; height: 28px; padding: 2px 4px; text-align: center; border-radius: 6px; border: 1px solid var(--border); font-weight: 600; color: var(--text);">
+                      <div class="coord-field-group" style="border-left: 1px solid var(--border); padding-left: 8px;">
+                          <span class="coord-label">П:</span>
+                          <input type="number" name="pos_{{ command.name }}" value="{{ current_pos.value }}" min="0" class="no-spinners coord-input-box">
                       </div>
                   </div>
               </label>
@@ -138,7 +138,7 @@
             {% endif %}
           </div>
         </div>
-      </form>
+      </form> parade
 
       {% else %}
       <!-- СОСТОЯНИЕ КОГДА КОМАНДА НЕ ВЫБРАНА -->
@@ -153,15 +153,63 @@
   </div>
 </div>
 
-<!-- ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ СКРЫТИЯ СТРЕЛОЧЕК БРАУЗЕРА -->
+<!-- ДОБАВЛЕННЫЕ СТИЛИ ДЛЯ ИЗОЛЯЦИИ И ВЫРАВНИВАНИЯ ПОЛЕЙ ВВОДА -->
 <style>
+  /* Изолированный контейнер для плашки Ряд/Позиция */
+  .coord-inputs-container {
+    display: flex !important;
+    gap: 8px !important;
+    flex-shrink: 0 !important;
+    background: var(--surface-soft) !important;
+    padding: 6px 10px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border) !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+  
+  .coord-field-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
+  }
+
+  .coord-label {
+    font-size: 11px !important;
+    color: var(--muted) !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    display: inline-block !important;
+  }
+
+  /* Жестко фиксируем свойства полей ввода, игнорируя глобальный CSS */
+  .coord-input-box {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+    height: 28px !important;
+    padding: 2px 4px !important;
+    text-align: center !important;
+    border-radius: 6px !important;
+    border: 1px solid #dfe4ec !important;
+    font-weight: 600 !important;
+    color: var(--text) !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Скрываем стрелочки увеличения/уменьшения для полей ввода типа number */
   .no-spinners::-webkit-outer-spin-button,
   .no-spinners::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+    -webkit-appearance: none !important;
+    margin: 0 !important;
   }
   .no-spinners {
-    -moz-appearance: textfield;
+    -moz-appearance: textfield !important;
   }
 </style>
 
