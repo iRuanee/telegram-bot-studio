@@ -58,7 +58,7 @@
     <!-- ПРАВАЯ КОЛОНКА: СЕТКА КНОПОК -->
     <div>
       {% if selected %}
-      <form method="POST" action="/response-buttons">
+      <form method="POST" action="/response-buttons" id="main_response_form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <input type="hidden" name="command_id" value="{{ selected.id }}">
 
@@ -76,33 +76,32 @@
           <!-- СЕТКА КАРТОЧЕК В 2 СТОЛБЦА -->
           <div class="command-checklist">
           {% for command in target_commands %} 
-              {# Универсальная логика определения координат, устойчивая к типам данных JSON/List #} 
-              {% set current_row = namespace(value=0) %} 
-              {% set current_pos = namespace(value=0) %} 
+              {# Гарантированная и отказоустойчивая сверка структуры клавиатуры #} 
+              {% set current_row = namespace(value="0") %} 
+              {% set current_pos = namespace(value="0") %} 
               {% set check_state = namespace(active=false) %} 
               
               {% if selected.keyboard %}
-                  {# Проверяем, является ли клавиатура строкой, и если да — переводим в список #}
-                  {% set kb_list = selected.keyboard if selected.keyboard is not string else selected.keyboard|from_json %}
-                  
-                  {% for row in kb_list %} 
+                  {% set cmd_clean = command.name|string|lower|trim %}
+                  {% for row in selected.keyboard %} 
                       {% set row_loop = loop %} 
                       {% for item in row %} 
-                          {% if item|string|replace("/", "")|trim == command.name|string|replace("/", "")|trim %} 
-                              {% set current_row.value = row_loop.index0 %} 
-                              {% set current_pos.value = loop.index0 %} 
+                          {% set item_clean = item|string|lower|replace("/", "")|trim %}
+                          {% if cmd_clean == item_clean or cmd_clean in item_clean %} 
+                              {% set current_row.value = "" ~ row_loop.index0 %} 
+                              {% set current_pos.value = "" ~ loop.index0 %} 
                               {% set check_state.active = true %} 
                           {% endif %} 
                       {% endfor %} 
                   {% endfor %} 
               {% endif %}
 
-              <!-- Строка-карточка отделена от полей ввода -->
+              <!-- Контейнер строки-карточки полностью изолирован от внешних стилей -->
               <div class="card-item-container {% if check_state.active %}active-status{% endif %}">
                   
-                  <!-- ЛЕВАЯ СТОРОНА: Включает галочку -->
+                  <!-- ЛЕВАЯ СТОРОНА: Чекбокс и текст команды -->
                   <label for="cmd_{{ command.name }}" class="card-label-trigger">
-                      <input type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %}>
+                      <input type="checkbox" name="target_commands" value="{{ command.name }}" id="cmd_{{ command.name }}" {% if check_state.active %}checked{% endif %} class="native-checkbox-fix">
                       <i></i>
                       <div class="card-text-block">
                           <strong>/{{ command.name }}</strong>
@@ -112,16 +111,22 @@
                       </div>
                   </label>
                   
-                  <!-- ПРАВАЯ СТОРОНА: Полноценно активные и заполненные инпуты -->
+                  <!-- ПРАВАЯ СТОРОНА: Прямо редактируемые DIV-блоки вместо конфликтующих INPUT -->
                   <div class="coord-wrapper-fixed">
                       <div class="coord-inner-box">
                           <span class="coord-text-tag">Р:</span>
-                          <input type="text" name="row_{{ command.name }}" value="{{ current_row.value }}" class="coord-field-input" autocomplete="off">
+                          <!-- Скрытое поле для отправки значения на сервер -->
+                          <input type="hidden" name="row_{{ command.name }}" id="hidden_row_{{ command.name }}" value="{{ current_row.value }}">
+                          <!-- Видимый, крупный, редактируемый DIV-блок, защищенный от style.css -->
+                          <div contenteditable="true" class="editable-coord-zone" oninput="document.getElementById('hidden_row_{{ command.name }}').value = this.innerText.trim();">{{ current_row.value }}</div>
                       </div>
                       <div class="coord-vertical-line"></div>
                       <div class="coord-inner-box">
                           <span class="coord-text-tag">П:</span>
-                          <input type="text" name="pos_{{ command.name }}" value="{{ current_pos.value }}" class="coord-field-input" autocomplete="off">
+                          <!-- Скрытое поле для отправки значения на сервер -->
+                          <input type="hidden" name="pos_{{ command.name }}" id="hidden_pos_{{ command.name }}" value="{{ current_pos.value }}">
+                          <!-- Видимый, крупный, редактируемый DIV-блок, защищенный от style.css -->
+                          <div contenteditable="true" class="editable-coord-zone" oninput="document.getElementById('hidden_pos_{{ command.name }}').value = this.innerText.trim();">{{ current_pos.value }}</div>
                       </div>
                   </div>
                   
@@ -143,8 +148,9 @@
 
   </div>
 </div>
+{% endblock %}
 
-<!-- ЖЕСТКАЯ СИСТЕМНАЯ ИЗОЛЯЦИЯ CSS И ВЫВЕДЕНИЕ СЛОЯ НАПЕРЕД -->
+<!-- ИЗОЛЯЦИЯ СТИЛЕЙ И СНЯТИЕ ЭФФЕКТОВ БЛОКИРОВКИ С INPUT -->
 <style type="text/css">
   .command-checklist {
     display: grid !important;
@@ -214,18 +220,19 @@
     white-space: nowrap !important;
   }
 
+  /* Защищенная плашка координат */
   .coord-wrapper-fixed {
     display: flex !important;
     align-items: center !important;
     background: #ffffff !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
-    padding: 0 8px !important;
-    gap: 4px !important;
+    padding: 0 6px !important;
+    gap: 2px !important;
     height: 32px !important;
-    width: 130px !important;
-    min-width: 130px !important;
-    max-width: 130px !important;
+    width: 125px !important;
+    min-width: 125px !important;
+    max-width: 125px !important;
     box-sizing: border-box !important;
     position: relative !important;
     z-index: 9999 !important;
@@ -236,8 +243,9 @@
   .coord-inner-box {
     display: flex !important;
     align-items: center !important;
-    width: 52px !important;
+    width: 50px !important;
     flex-grow: 1 !important;
+    pointer-events: auto !important;
   }
 
   .coord-text-tag {
@@ -246,27 +254,30 @@
     color: #64748b !important;
     margin-right: 4px !important;
     user-select: none !important;
-  }
+}
 
-  .coord-field-input {
+  .editable-coord-zone {
+    display: inline-block !important;
     width: 100% !important;
+    min-width: 25px !important;
     height: 24px !important;
-    border: none !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    line-height: 24px !important;
     font-size: 14px !important;
     font-weight: 700 !important;
     color: #0f172a !important;
     text-align: center !important;
     outline: none !important;
-    box-shadow: none !important;
-  }
+    cursor: text !important;
+    pointer-events: auto !important;
+    background: #ffffff !important;
+    z-index: 10000 !important;
+}
 
-  .coord-field-input:focus {
+  .editable-coord-zone:focus {
+    background: #f0f7ff !important;
     color: var(--primary) !important;
-    font-weight: 800 !important;
-  }
+    border-radius: 4px !important;
+}
 
   .coord-vertical-line {
     width: 1px !important;
@@ -274,14 +285,13 @@
     background-color: #cbd5e1 !important;
     margin: 0 4px !important;
     user-select: none !important;
-  }
+}
 
-  .card-label-trigger input[type="checkbox"] {
+  .native-checkbox-fix[type="checkbox"] {
     position: absolute !important;
     opacity: 0 !important;
-    width: 20px !important;
-    height: 20px !important;
+    width: 24px !important;
+    height: 24px !important;
     z-index: -1 !important;
-  }
-
-{% endblock %}
+    pointer-events: none !important;
+}
