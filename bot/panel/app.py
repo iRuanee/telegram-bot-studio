@@ -233,34 +233,6 @@ def create_app(application, settings) -> FastAPI:
             },
         )
 
-    #@app.get("/", response_class=HTMLResponse, dependencies=[Depends(login_required)])
-    #async def index(request: Request):
-    #    pool = _get_pool(request)
-    #    items = await db.list_commands(pool) if pool is not None else []
-    #    button_items = await db.list_menu_buttons(pool) if pool is not None else []
-    #    response_button_count = sum(
-    #        len(row)
-    #        for item in items
-    #        for row in (item.get("keyboard") or [])
-    #    )
-    #    audit_items = await db.list_audit_log(pool, limit=8) if pool is not None else []
-    #    return templates.TemplateResponse(
-    #        "list.html",
-    #        {
-    #            "request": request,
-    #            "stats": {
-    #                "total": len(items),
-    #                "enabled": sum(bool(item["enabled"]) for item in items),
-    #                "in_menu": sum(
-    #                    bool(item["enabled"] and item["show_in_menu"]) for item in items
-    #                ),
-    #                "buttons": len(button_items) + response_button_count,
-    #            },
-    #            "audit_items": audit_items,
-    #            "csrf_token": get_csrf_token(request),
-    #        },
-    #    )
-
     @app.post("/activity/clear", dependencies=[Depends(login_required)])
     async def clear_activity(request: Request, csrf_token: str = Form("")):
         verify_csrf(request, csrf_token)
@@ -498,80 +470,6 @@ def create_app(application, settings) -> FastAPI:
         return RedirectResponse(
             f"/response-buttons?command_id={command_id}", status_code=303
         )
-
-#    @app.post(
-#        "/response-buttons",
-#        response_class=HTMLResponse,
-#        dependencies=[Depends(login_required)],
-#    )
-#    async def response_buttons_submit(request: Request):
-#        form = await request.form()
-#        verify_csrf(request, form.get("csrf_token"))
-#        pool = _get_pool(request)
-#        try:
-#            command_id = int(form.get("command_id") or "")
-#        except ValueError:
-#            command_id = 0
-#        selected = await db.get_command(pool, command_id)
-#        errors = [] if selected else ["Select a valid command from the list."]
-#        clear_buttons = form.get("clear") == "1"
-#        command_rows = await db.list_commands(pool)
-#        target_commands = [
-#            {"name": name, "description": f"Built-in /{name}"}
-#            for name in BUILTIN_COMMANDS
-#        ] + command_rows
-#        valid_targets = {item["name"] for item in target_commands}
-#        selected_targets = [
-#            name for name in form.getlist("target_commands") if name in valid_targets
-#        ]
-#        try:
-#            columns = min(3, max(1, int(form.get("columns") or 2)))
-#        except ValueError:
-#            columns = 2
-#        if not selected_targets and not clear_buttons:
-#            errors.append("Select at least one command for the response buttons.")
-#        keyboard = [
-#            [f"/{name}" for name in selected_targets[index : index + columns]]
-#            for index in range(0, len(selected_targets), columns)
-#        ]
-#        if errors:
-#            return templates.TemplateResponse(
-#                "response_buttons.html",
-#                {
-#                    "request": request,
-#                    "commands": command_rows,
-#                    "selected": selected,
-#                    "target_commands": target_commands,
-#                    "selected_targets": set(selected_targets),
-#                    "columns": columns,
-#                    "errors": errors,
-#                    "csrf_token": get_csrf_token(request),
-#                },
-#                status_code=400,
-#            )
-#        await db.update_command_keyboard(
-#            pool, command_id, None if clear_buttons else keyboard
-#        )
-#        await _audit(
-#            request,
-#            "cleared" if clear_buttons else "updated",
-#            "response_buttons",
-#            selected["name"],
-#            {"targets": [] if clear_buttons else selected_targets},
-#        )
-#        await _refresh(request)
-#        _flash(
-#            request,
-#            (
-#                f"Response buttons for /{selected['name']} were removed."
-#                if clear_buttons
-#                else f"Response buttons for /{selected['name']} were updated."
-#            ),
-#            refresh=True,
-#        )
-#        return RedirectResponse(
-#            f"/response-buttons?command_id={command_id}", status_code=303
-#        )
 
     @app.post(
         "/commands/{command_id}/delete", dependencies=[Depends(login_required)]

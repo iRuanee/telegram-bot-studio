@@ -39,8 +39,6 @@ MENU_ABOUT = "Информация о боте"
 ABOUT_TEXT = """Доступные команды:
 /start - Запустить бота
 /about - Информация о боте"""
-#/help - Show help
-#/ping - Check bot status
 
 DEFAULT_ECHO_TEXT = "Выберите интересующий вас раздел в меню:"
 
@@ -80,51 +78,6 @@ def _main_menu_keyboard() -> ReplyKeyboardMarkup:
     )
 
 
-#def _main_menu_keyboard() -> ReplyKeyboardMarkup:
-#    # Инициализируем словарь рядов и сразу добавляем MENU_ABOUT в самый первый ряд (индекс 0)
-#    custom_rows: dict[int, list[str]] = {0: [MENU_ABOUT]}
-#    
-#    # Проходим по кнопкам из админки
-#    for button in commands.reply_menu_buttons():
-#        # Если в админке для кнопки указан row_index, добавляем её в соответствующий список.
-#        # Если указан row_index = 0, она добавится в один ряд к MENU_ABOUT
-#        custom_rows.setdefault(button["row_index"], []).append(button["label"])
-#        
-#    # Собираем финальную сетку клавиатуры, сортируя ряды по возрастанию индекса
-#    rows = [custom_rows[index] for index in sorted(custom_rows)]
-#    
-#    return ReplyKeyboardMarkup(
-#        rows,
-#        resize_keyboard=True,
-#        is_persistent=True,
-#        input_field_placeholder="Выберите пункт меню", 
-#    )
-
-
-#def _main_menu_keyboard() -> ReplyKeyboardMarkup:
-#    rows: list[list[str]] =  [[MENU_ABOUT]]
-#    custom_rows: dict[int, list[str]] = {}
-#    for button in commands.reply_menu_buttons():
-#        custom_rows.setdefault(button["row_index"], []).append(button["label"])
-#    rows.extend(custom_rows[index] for index in sorted(custom_rows))
-#    return ReplyKeyboardMarkup(
-#        rows,
-#        resize_keyboard=True,
-#        is_persistent=True,
-#        input_field_placeholder="Выберите пункт меню", 
-#    )
-#        #previously ^^^ :   [[MENU_HELP, MENU_ABOUT], [MENU_PING]]
-#        #previously ^^^ :   Choose a menu item
-
-
-#def _dynamic_commands_text() -> str:
-#    items = commands.menu_commands()
-#    if not items:
-#        return ""
-#    lines = [f"/{name} - {description}" for name, description in items]
-#    return "\n\nДоступные команды меню:\n" + "\n".join(lines) 
-#        #previously ^^^: "\n\nAvailable menu commands:\n"
-
 def _dynamic_commands_text() -> str:
     # Заменили на about_menu_commands(), чтобы выводить только разрешенные для /about команды
     items = commands.about_menu_commands()
@@ -132,6 +85,7 @@ def _dynamic_commands_text() -> str:
         return ""
     lines = [f"/{name} - {description}" for name, description in items]
     return "\n\nДоступные команды меню:\n" + "\n".join(lines)
+
 
 def _start_commands_keyboard() -> InlineKeyboardMarkup | None:
     items = commands.start_menu_commands() # Берем только для старта
@@ -144,6 +98,27 @@ def _start_commands_keyboard() -> InlineKeyboardMarkup | None:
     rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
     return InlineKeyboardMarkup(rows)
 
+
+def _start_response_keyboard() -> ReplyKeyboardMarkup | None:
+    # Получаем команды, отсортированные по ID, у которых включен показ в старте
+    items = commands.start_menu_commands()
+    if not items:
+        return None
+        
+    # Собираем чистый текст для кнопок (берём красивые описания вместо команд со слэшем)
+    buttons = [description for name, description in items]
+    
+    # Распределяем кнопки по 2 штуки в один ряд
+    rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
+    
+    return ReplyKeyboardMarkup(
+        rows,
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="Выберите пункт меню"
+    )
+
+
 def _about_commands_keyboard() -> InlineKeyboardMarkup | None:
     items = commands.about_menu_commands() # Берем только для общих ответов/about
     if not items:
@@ -154,22 +129,6 @@ def _about_commands_keyboard() -> InlineKeyboardMarkup | None:
     ]
     rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
     return InlineKeyboardMarkup(rows)
-
-
-#def _dynamic_commands_keyboard() -> InlineKeyboardMarkup | None:
-#    items = commands.menu_commands()
-#    if not items:
-#        return None
-#
-#    buttons = [
-#        InlineKeyboardButton(
-#            text=description if (description and description.strip()) else name,
-#            callback_data=f"{DYNAMIC_CALLBACK_PREFIX}{name}",
-#        )
-#        for name, description in items
-#    ]
-#    rows = [buttons[index : index + 2] for index in range(0, len(buttons), 2)]
-#    return InlineKeyboardMarkup(rows)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -215,29 +174,30 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             replied_at=replied_at
         )
 
+
 async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     received_at = datetime.datetime.now(datetime.timezone.utc)
-    del context
+    
     message = update.effective_message
     user = update.effective_user
     if message is None or user is None:
         return
 
-    #Извлекаем из реестра стартовую инлайн-клавиатуру (она автоматически берет только те команды, у которых в админке включен чекбокс show_in_start)
-    start_keyboard = _main_menu_keyboard()
-
+    # Собираем полный текст в одну переменную
     full_about_text = (
         ABOUT_TEXT
         + _dynamic_commands_text()
-        + "\n\nВыберите интересующий вас раздел в меню ниже:")
-
-    # Функция общих настроек /about оставляет оригинальное описание и вызывает типовую клавиатуру
-    await message.reply_text(
-        full_about_text
+        + "\n\nВыберите интересующий вас раздел в меню ниже:"
     )
+
+    # Берем ту же самую нижнюю стартовую response-клавиатуру
+    response_keyboard = _start_response_keyboard()
+
+    # Отправляем
+    await message.reply_text(full_about_text, reply_markup=response_keyboard)
+    
     pool = context.bot_data.get(DB_KEY)
-    user = update.effective_user
-    if pool and user:
+    if pool:
         replied_at = datetime.datetime.now(datetime.timezone.utc)
         await db.log_user_interaction(
             pool,
@@ -246,58 +206,12 @@ async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             user_message_type="command",
             user_text="/about",
             reply_type="text",
-            reply_description="Информация о боте",
+            reply_description="Информация о доступных командах бота",
             reply_command="about",
             reply_text=full_about_text,
             received_at=received_at,
             replied_at=replied_at
         )
-
-#async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#    del context
-#    message = update.effective_message
-#    if message is None:
-#        return
-#
-#    await message.reply_text(
-#        ABOUT_TEXT
-#        + _dynamic_commands_text()
-#        + "\n\nЛюбое отправленное текстовое сообщение, автоматически вызывает подсказку /about.",
-#        reply_markup=_dynamic_commands_keyboard(),
-#    )
-
-# async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    #del context
-    #message = update.effective_message
-    #if message is None:
-    #    return
-    #
-    #await message.reply_text(
-    #    HELP_TEXT
-    #    + _dynamic_commands_text()
-    #    + "\n\nОтправьте обычное текстовое сообщение, и бот ответит вам тем же.",
-    #    reply_markup=_dynamic_commands_keyboard(),
-    #)
-
-
-#async def about(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    #del context
-    #message = update.effective_message
-    #if message is None:
-    #    return
-    #
-    #await message.reply_text(
-    #    "This bot is built with python-telegram-bot and is ready to deploy on Railway."
-    #)
-
-
-#async def ping(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    #message = update.effective_message
-    #if message is None:
-    #    return
-    #
-    #del context
-    #await message.reply_text("pong")
 
 
 async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -394,72 +308,6 @@ async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             received_at=received_at,
             replied_at=replied_at
         )
-        
-
-#async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#    message = update.effective_message
-#    if message is None or not message.text:
-#        return
-#
-#    # Автоматически вызываем подсказку со всеми доступными командами
-#    await about(update, context)
-
-#async def menu_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#    message = update.effective_message
-#    if message is None or not message.text:
-#        return
-#
-#    text = message.text.strip()
-#    if text == MENU_ABOUT:
-#        await about(update, context)
-#
-    #if text == MENU_HELP:
-    #    await help_command(update, context)
-    #elif text == MENU_ABOUT:
-    #    await about(update, context)
-    #elif text == MENU_PING:
-    #    await ping(update, context)
-
-
-#async def echo_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-#    message = await about(update, context)
-#    #message = update.effective_message
-#    user = update.effective_user
-#    if message is None or not message.text or user is None:
-#        return
-#
-#    target = commands.button_target(message.text.strip())
-#    if target is not None:
-#        if target == "about":
-#            await about(update, context)
-#        elif target == "start":
-#            await start(update, context)
-#        else:
-#            command = commands.lookup(target)
-#            if command is None:
-#                await message.reply_text("В данный момент эта команда недоступна.")
-#            else:
-#                await commands.send(message, command)
-#        return
-
-        #if target == "help":
-        #    await help_command(update, context)
-        #elif target == "about":
-        #    await about(update, context)
-        #elif target == "ping":
-        #    await ping(update, context)
-        #elif target == "start":
-        #    await start(update, context)
-        #else:
-        #    command = commands.lookup(target)
-        #    if command is None:
-        #        await message.reply_text("This button's command is currently unavailable.")
-        #    else:
-        #        await commands.send(message, command)
-        #return
-
-    #count = _LOCAL_MESSAGE_COUNTS[user.id] = _LOCAL_MESSAGE_COUNTS.get(user.id, 0) + 1
-    #await message.reply_text(f"Вы отправили (#{count}):\n{message.text}")
 
 
 def _parse_command_name(text: str) -> str:
@@ -565,25 +413,3 @@ def register_handlers(application: Application) -> None:
     # Направляем все текстовые сообщения сначала в menu_button для проверки на кнопки.
     # Если это не кнопка, menu_button сама внутри перенаправит в echo_message.
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, menu_button))
-
-
-#def register_handlers(application: Application) -> None:
-#
-#
-#    application.add_handler(CommandHandler("start", start))
-#    #application.add_handler(CommandHandler("help", help_command))
-#    application.add_handler(CommandHandler("about", about))
-#    #application.add_handler(CommandHandler("ping", ping))
-#    application.add_handler(
-#        CallbackQueryHandler(
-#            dynamic_command_button,
-#            pattern=f"^{DYNAMIC_CALLBACK_PREFIX}[a-z0-9_]{{1,32}}$",
-#        )
-#    )
-#    # Any other /command is resolved dynamically from the panel-managed registry.
-#    application.add_handler(MessageHandler(filters.COMMAND, dynamic_command_dispatcher))
-#    application.add_handler(
-#        MessageHandler(filters.Regex(f"^({MENU_ABOUT})$"), menu_button)
-#    )
-#    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo_message))
-#        #previously ^^^ :   MessageHandler(filters.Regex(f"^({MENU_HELP}|{MENU_ABOUT}|{MENU_PING})$"), menu_button)
