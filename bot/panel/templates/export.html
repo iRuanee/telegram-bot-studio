@@ -3,6 +3,7 @@
 {% block content %}
 
 <div class="content-wrap">
+  <!-- ЗАГОЛОВОК СТРАНИЦЫ -->
   <div class="page-heading">
     <div>
       <span class="eyebrow">Аналитика</span>
@@ -11,6 +12,7 @@
     </div>
   </div>
 
+  <!-- БЛОК УВЕДОМЛЕНИЙ ОБ ОШИБКАХ -->
   {% if errors %}
   <div class="errors">
     <strong>Пожалуйста, исправьте следующие ошибки:</strong>
@@ -22,13 +24,16 @@
   </div>
   {% endif %}
 
+  <!-- ГЛАВНАЯ ФОРМА НАСТРОЕК -->
   <form method="POST" action="/export/download">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
     <div class="editor-layout" style="display: flex !important; gap: 30px !important; align-items: flex-start !important; width: 100% !important;">
       
+      <!-- ЛЕВАЯ ЧАСТЬ: ОСНОВНЫЕ ПАРАМЕТРЫ -->
       <div class="editor-main" style="flex: 1 !important; min-width: 0 !important;">
         
+        <!-- СЕКЦИЯ 1: ВЫБОР ТАБЛИЦЫ -->
         <div class="card form-section">
           <div class="form-section-title">
             <span>01</span>
@@ -63,6 +68,7 @@
           </div>
         </div>
 
+        <!-- СЕКЦИЯ 2: ФИЛЬТР ПО USER ID -->
         <div class="card form-section">
           <div class="form-section-title">
             <span>02</span>
@@ -82,6 +88,7 @@
           </div>
         </div>
 
+        <!-- СЕКЦИЯ 3: РЕЖИМ ВРЕМЕНИ -->
         <div class="card form-section">
           <div class="form-section-title">
             <span>03</span>
@@ -102,6 +109,7 @@
             </div>
           </div>
 
+          <!-- БЛОК ДАТ -->
           <div id="date_filters_block" style="transition: .2s ease !important; width: 100% !important;">
             <div class="field-grid two" style="display: flex !important; gap: 20px !important; width: 100% !important;">
               
@@ -127,6 +135,7 @@
 
         </div>
 
+        <!-- КНОПКИ ДЕЙСТВИЯ -->
         <div class="form-actions" style="display: flex !important; justify-content: space-between !important; align-items: center; margin-top: 30px !important;">
           <a href="/commands" class="btn wizard-cancel" style="padding: 8px 16px !important;">Отмена</a>
           <button type="submit" class="btn btn-primary btn-large" style="padding: 10px 24px !important; font-weight: bold !important;">Сгенерировать и скачать Excel ✓</button>
@@ -134,6 +143,7 @@
 
       </div>
 
+      <!-- ПРАВАЯ ЧАСТЬ: СПРАВКА СИСТЕМЫ -->
       <div class="preview-sticky" style="width: 320px !important; min-width: 320px !important; max-width: 320px !important; flex-shrink: 0 !important; position: sticky !important; top: 20px !important;">
         <div class="preview-label" style="display: flex !important; justify-content: space-between !important; align-items: center; margin-bottom: 10px !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 6px !important;">
           <span style="font-size: 11px !important; font-weight: bold !important; color: var(--muted) !important; text-transform: uppercase !important;">Справка системы</span>
@@ -141,5 +151,3 @@
         </div>
         <div class="toast" style="display: flex !important; gap: 12px !important; background: var(--surface) !important; border: 1px solid var(--border) !important; padding: 16px !important; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;">
           <span style="background: var(--primary-soft) !important; color: var(--primary) !important; border-radius: 50% !important; width: 24px !important; height: 24px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; font-weight: bold !important; flex-shrink: 0 !important;">i</span>
-          <div style="flex: 1 !important; min-width: 0 !important;">
-            <strong style="display: block !important; font-size: 13px !important; margin-bottom: 4px !important; color: var(--text) !important;">Генерация отчетов</strong>
