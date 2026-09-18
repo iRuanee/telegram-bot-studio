@@ -478,10 +478,10 @@ async def log_user_interaction(
         received_at,
         replied_at
     )
-
+    
 
 async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None) -> list[dict]:
-    """Возвращает список пользователей, отфильтрованных по дате создания аккаунта и/или ID."""
+    """Возвращает список пользователей, отфильтрованных по дате создания аккаунта, ID и точному времени."""
     query = "SELECT telegram_id, username, first_name, created_at, last_seen FROM users"
     conditions = []
     params = []
@@ -489,14 +489,15 @@ async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date
     if telegram_id:
         params.append(telegram_id)
         conditions.append(f"telegram_id = ${len(params)}")
-    if start_date:
-        params.append(f"{start_date} 00:00:00")
-        # ЯВНОЕ ПРИВЕДЕНИЕ ТИПА К TIMESTAMPTZ:
-        conditions.append(f"created_at >= ${len(params)}::TIMESTAMPTZ")
-    if end_date:
-        params.append(f"{end_date} 23:59:59")
-        # ЯВНОЕ ПРИВЕДЕНИЕ ТИПА К TIMESTAMPTZ:
-        conditions.append(f"created_at <= ${len(params)}::TIMESTAMPTZ")
+    if start_date and start_date.strip():
+        # Текстовое поле datetime-local имеет формат "YYYY-MM-DDTHH:MM"
+        start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        params.append(start_dt)
+        conditions.append(f"created_at >= ${len(params)}")
+    if end_date and end_date.strip():
+        end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        params.append(end_dt)
+        conditions.append(f"created_at <= ${len(params)}")
         
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
@@ -507,7 +508,7 @@ async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date
 
 
 async def get_interactions_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None) -> list[dict]:
-    """Возвращает логи взаимодействий, отфильтрованные по времени и/или ID пользователя."""
+    """Возвращает логи взаимодействий, отфильтрованные по ID пользователя и точному времени (часы/минуты)."""
     query = """
         SELECT telegram_id, username, user_message_type, user_text, 
                reply_type, reply_description, reply_command, reply_text, received_at, replied_at 
@@ -519,14 +520,14 @@ async def get_interactions_by_date(pool: asyncpg.Pool, start_date: str | None, e
     if telegram_id:
         params.append(telegram_id)
         conditions.append(f"telegram_id = ${len(params)}")
-    if start_date:
-        params.append(f"{start_date} 00:00:00")
-        # ЯВНОЕ ПРИВЕДЕНИЕ ТИПА К TIMESTAMPTZ:
-        conditions.append(f"received_at >= ${len(params)}::TIMESTAMPTZ")
-    if end_date:
-        params.append(f"{end_date} 23:59:59")
-        # ЯВНОЕ ПРИВЕДЕНИЕ ТИПА К TIMESTAMPTZ:
-        conditions.append(f"received_at <= ${len(params)}::TIMESTAMPTZ")
+    if start_date and start_date.strip():
+        start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        params.append(start_dt)
+        conditions.append(f"received_at >= ${len(params)}")
+    if end_date and end_date.strip():
+        end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+        params.append(end_dt)
+        conditions.append(f"received_at <= ${len(params)}")
         
     if conditions:
         query += " WHERE " + " AND ".join(conditions)

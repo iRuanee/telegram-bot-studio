@@ -4,7 +4,7 @@
 
 # Экспорт данных в Excel
 
-Выберите интересующую вас таблицу, а также настройте фильтры по пользователю и временному промежутку.
+Выберите интересующую вас таблицу, а также настройте фильтры по пользователю и временному промежутку с точностью до минут.
 
 <form method="POST" action="/export/download" style="max-width: 500px; margin-top: 25px;">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -37,15 +37,15 @@
 
   📅
 
-  ## 3. Интересующий временной промежуток
+  ## 3. Точный временной промежуток (Дата и время)
 
-  Укажите даты, чтобы выгрузить срез логов за определенный период.
+  Укажите дату и время, чтобы выгрузить срез логов за определенный час или минуту.
 
   Начало периода (От):
-  <input type="date" name="start_date" value="{{ start_date }}" style="display: block; width: 100%; margin-bottom: 15px; padding: 5px;">
+  <input type="datetime-local" name="start_date" style="display: block; width: 100%; margin-bottom: 15px; padding: 5px;">
 
   Конец периода (До):
-  <input type="date" name="end_date" value="{{ end_date }}" style="display: block; width: 100%; margin-bottom: 25px; padding: 5px;">
+  <input type="datetime-local" name="end_date" style="display: block; width: 100%; margin-bottom: 25px; padding: 5px;">
 
   💾
 
