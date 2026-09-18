@@ -7,6 +7,7 @@ registry and the Telegram command menu so updates take effect immediately.
 
 import logging
 import re
+import io
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -15,6 +16,8 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
+from openpyxl import Workbook
+from fastapi.responses import StreamingResponse
 
 from bot import commands, db
 from bot.handlers import DB_KEY, set_bot_commands
@@ -754,6 +757,88 @@ def create_app(application, settings) -> FastAPI:
                 "reply_types": commands.REPLY_TYPES,
             },
             status_code=400 if errors else 200,
+        )
+
+    @app.post("/export/download", dependencies=[Depends(login_required)])
+    async def export_download(
+        request: Request,
+        target_table: str = Form(...),
+        start_date: str = Form(""),
+        end_date: str = Form(""),
+        filter_tg_id: str = Form(""),
+        csrf_token: str = Form(""),
+    ):
+        verify_csrf(request, csrf_token)
+        pool = _get_pool(request)
+        if pool is None:
+            return RedirectResponse("/export", status_code=303)
+
+        # Валидация Telegram ID (если введен, переводим в int)
+        telegram_id = None
+        if filter_tg_id.strip():
+            try:
+                telegram_id = int(filter_tg_id.strip())
+            except ValueError:
+                # В случае ввода некорректного ID перенаправляем обратно с флэш-предупреждением
+                request.session["flash"] = {"message": "Telegram ID должен состоять только из цифр.", "kind": "error"}
+                return RedirectResponse("/export", status_code=303)
+
+        wb = Workbook()
+        ws = wb.active
+
+        # Генерируем суффикс для имени файла на основе фильтров
+        date_suffix = f"_{start_date}_to_{end_date}" if (start_date or end_date) else "_all_time"
+        id_suffix = f"_user_{telegram_id}" if telegram_id else ""
+
+        if target_table == "users":
+            ws.title = "Пользователи"
+            headers = ["Telegram ID", "Username", "First Name", "Дата регистрации", "Последняя активность"]
+            ws.append(headers)
+            
+            rows = await db.get_users_by_date(pool, start_date, end_date, telegram_id)
+            for row in rows:
+                ws.append([
+                    row["telegram_id"],
+                    f"@{row['username']}" if row["username"] else "",
+                    row["first_name"] or "",
+                    row["created_at"].strftime("%Y-%m-%d %H:%M:%S") if row["created_at"] else "",
+                    row["last_seen"].strftime("%Y-%m-%d %H:%M:%S") if row["last_seen"] else ""
+                ])
+            filename = f"users_export{id_suffix}{date_suffix}.xlsx"
+
+        else:
+            ws.title = "Логи взаимодействий"
+            headers = [
+                "Telegram ID", "Username", "Тип сообщения", "Текст пользователя",
+                "Тип ответа", "Описание ответа", "Команда", "Текст ответа бота",
+                "Время запроса", "Время ответа"
+            ]
+            ws.append(headers)
+            
+            rows = await db.get_interactions_by_date(pool, start_date, end_date, telegram_id)
+            for row in rows:
+                ws.append([
+                    row["telegram_id"],
+                    f"@{row['username']}" if row["username"] else "",
+                    row["user_message_type"],
+                    row["user_text"],
+                    row["reply_type"],
+                    row["reply_description"] or "",
+                    row["reply_command"],
+                    row["reply_text"],
+                    row["received_at"].strftime("%Y-%m-%d %H:%M:%S") if row["received_at"] else "",
+                    row["replied_at"].strftime("%Y-%m-%d %H:%M:%S") if row["replied_at"] else ""
+                ])
+            filename = f"interactions_export{id_suffix}{date_suffix}.xlsx"
+
+        file_stream = io.BytesIO()
+        wb.save(file_stream)
+        file_stream.seek(0)
+
+        return StreamingResponse(
+            file_stream,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
 
     return app

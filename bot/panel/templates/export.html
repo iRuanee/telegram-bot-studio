@@ -1,0 +1,55 @@
+{% extends "base.html" %} 
+{% block title %}Экспорт данных · Telegram Bot Studio{% endblock %} 
+{% block content %}
+
+# Экспорт данных в Excel
+
+Выберите интересующую вас таблицу, а также настройте фильтры по пользователю и временному промежутку.
+
+<form method="POST" action="/export/download" style="max-width: 500px; margin-top: 25px;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  📊
+
+  ## 1. Выберите таблицу
+
+  <p>
+    <label>
+      <input type="radio" name="target_table" value="user_interactions" checked> 
+      **Логи взаимодействий** (user_interactions)
+    </label>
+  </p>
+  <p>
+    <label>
+      <input type="radio" name="target_table" value="users"> 
+      **База пользователей** (users)
+    </label>
+  </p>
+
+  🔍
+
+  ## 2. Фильтр по пользователю
+
+  Оставьте пустым, чтобы выгрузить данные по всем посетителям.
+
+  Telegram ID посетителя:
+  <input type="text" name="filter_tg_id" placeholder="Например: 385146145" style="display: block; width: 100%; margin-bottom: 20px; padding: 5px;">
+
+  📅
+
+  ## 3. Интересующий временной промежуток
+
+  Укажите даты, чтобы выгрузить срез логов за определенный период.
+
+  Начало периода (От):
+  <input type="date" name="start_date" value="{{ start_date }}" style="display: block; width: 100%; margin-bottom: 15px; padding: 5px;">
+
+  Конец периода (До):
+  <input type="date" name="end_date" value="{{ end_date }}" style="display: block; width: 100%; margin-bottom: 25px; padding: 5px;">
+
+  💾
+
+  <button type="submit" style="padding: 8px 20px; font-weight: bold; cursor: pointer;">Сгенерировать и скачать Excel ✓</button>
+</form>
+
+{% endblock %}
