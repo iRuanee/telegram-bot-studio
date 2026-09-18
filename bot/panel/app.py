@@ -12,12 +12,11 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 from openpyxl import Workbook
-from fastapi.responses import StreamingResponse
 
 from bot import commands, db
 from bot.handlers import DB_KEY, set_bot_commands
@@ -757,6 +756,18 @@ def create_app(application, settings) -> FastAPI:
                 "reply_types": commands.REPLY_TYPES,
             },
             status_code=400 if errors else 200,
+        )
+
+    @app.get("/export", response_class=HTMLResponse, dependencies=[Depends(login_required)])
+    async def export_page(request: Request, start_date: str = "", end_date: str = ""):
+        return templates.TemplateResponse(
+            "export.html",
+            {
+                "request": request,
+                "start_date": start_date,
+                "end_date": end_date,
+                "csrf_token": get_csrf_token(request),
+            },
         )
 
     @app.post("/export/download", dependencies=[Depends(login_required)])
