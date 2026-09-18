@@ -84,7 +84,7 @@
               <span style="background: var(--surface-soft) !important; border-right: 1px solid var(--border) !important; padding: 0 16px !important; height: 38px !important; line-height: 38px !important; font-weight: bold !important; color: var(--muted) !important; user-select: none !important;">ID</span>
               <input type="text" id="filter_tg_id" name="filter_tg_id" placeholder="Например: 385146145" style="border: none !important; outline: none !important; padding: 0 12px !important; height: 38px !important; flex: 1 !important; font-size: 14px !important;">
             </div>
-            <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 6px !important;">Укажите числовой идентификатор аккаунта для точечного среза логов.</div>
+            <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 6px !important;">Укажите числовой identifier аккаунта для точечного среза логов.</div>
           </div>
         </div>
 
@@ -98,7 +98,6 @@
             </div>
           </div>
 
-          <!-- ФИКСАЦИЯ РАСПОЛОЖЕНИЯ ТУМБЛЕРА ПЕРЕКЛЮЧАТЕЛЯ -->
           <div class="toggle-row" style="display: flex !important; align-items: center !important; justify-content: space-between !important; background: var(--surface-soft) !important; padding: 12px 16px !important; border-radius: 8px !important; border: 1px solid var(--border) !important; margin-bottom: 20px !important;">
             <div style="display: flex !important; flex-direction: column !important; gap: 2px !important;">
               <strong style="font-size: 13px !important; color: var(--text) !important;">Выгрузить таблицу целиком</strong>
@@ -110,7 +109,7 @@
             </div>
           </div>
 
-          <!-- БЛОК ДАТ (ИСПРАВЛЕНЫ ОТСТУПЫ И КONТУРЫ ИНПУТОВ) -->
+          <!-- БЛОК ДАТ -->
           <div id="date_filters_block" style="transition: .2s ease !important; width: 100% !important;">
             <div class="field-grid two" style="display: flex !important; gap: 20px !important; width: 100% !important;">
               
@@ -137,17 +136,18 @@
         </div>
 
         <!-- КНОПКИ ДЕЙСТВИЯ -->
-        <div class="form-actions" style="display: flex !important; justify-content-between; align-items: center; margin-top: 30px !important;">
+        <div class="form-actions" style="display: flex !important; justify-content-between !important; align-items: center; margin-top: 30px !important;">
           <a href="/commands" class="btn wizard-cancel" style="padding: 8px 16px !important;">Отмена</a>
           <button type="submit" class="btn btn-primary btn-large" style="padding: 10px 24px !important; font-weight: bold !important;">Сгенерировать и скачать Excel ✓</button>
         </div>
 
       </div>
 
-      <!-- ПРАВАЯ ЧАСТЬ: СТАБИЛИЗИРОВАННАЯ СПРАВКА С ФИКСИРОВАННОЙ ШИРИНОЙ -->
+      <!-- ПРАВАЯ ЧАСТЬ: СПРАВКА СИСТЕМЫ -->
       <div class="preview-sticky" style="width: 320px !important; min-width: 320px !important; max-width: 320px !important; flex-shrink: 0 !important; position: sticky !important; top: 20px !important;">
-        <div class="preview-label" style="display: flex !important; justify-content-between; align-items: center; margin-bottom: 10px !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 6px !important;">
+        <div class="preview-label" style="display: flex !important; justify-content-between !important; align-items: center; margin-bottom: 10px !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 6px !important;">
           <span style="font-size: 11px !important; font-weight: bold !important; color: var(--muted) !important; text-transform: uppercase !important;">Справка системы</span>
           <small style="color: var(--muted) !important; font-size: 11px !important;">Формат XLSX</small>
         </div>
         <div class="toast" style="display: flex !important; gap: 12px !important; background: var(--surface) !important; border: 1px solid var(--border) !important; padding: 16px !important; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;">
+          <span style="background: var(--primary-soft) !important; color: var(--primary) !important; border-radius: 50% !important; width: 24px !important; height: 24px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; font-weight: bold !important; flex-shrink: 0 !important;">i</span>
