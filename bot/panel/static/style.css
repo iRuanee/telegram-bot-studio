@@ -603,3 +603,139 @@ form.inline { display: inline; }
   .form-actions .btn { flex: 1; }
   .wizard-progress, .wizard-cancel { display: none; }
 }
+
+/* ================================================================= */
+/* КОРРЕКТИРОВКА СЕТКИ ДЛЯ РАЗДЕЛА RESPONSE BUTTONS                  */
+/* ================================================================= */
+
+/* Заставляем карточки выстраиваться в красивую сетку по 2 штуки в ряд */
+.command-checklist {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+
+/* Перестраиваем карточку label из вертикальной колонки в строгую горизонтальную линию */
+.command-checklist label {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    cursor: pointer !important;
+    width: 100% !important;
+}
+
+/* Убираем абсолютное позиционирование чекбокса, которое перекрывало клики по цифрам */
+.command-checklist label input[type="checkbox"] {
+    position: static !important;
+    opacity: 1 !important; /* Делаем чекбокс видимым и аккуратным */
+    width: 16px !important;
+    height: 16px !important;
+    margin: 0 10px 0 0 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    flex-shrink: 0 !important;
+}
+
+/* Отключаем старый ломающий кастомный индикатор <i>, так как мы включили нативный чекбокс */
+.command-checklist label i {
+    display: none !important;
+}
+
+/* Текстовый блок с названием команды и описанием */
+.command-checklist label div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+    text-align: left !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.command-checklist label strong {
+    font-size: 13px !important;
+    color: var(--text) !important;
+    line-height: 1.2 !important;
+}
+
+.command-checklist label small {
+    font-size: 11px !important;
+    color: var(--muted) !important;
+    margin-top: 2px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+    width: 100% !important;
+}
+
+/* СТИЛИЗАЦИЯ И ИЗОЛЯЦИЯ ПЛАШКИ КООРДИНАТ (РЯД И ПОЗИЦИЯ) */
+.coord-badge-container {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    background: var(--surface-soft, #f8fafc) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 6px !important;
+    padding: 0 6px !important;
+    gap: 4px !important;
+    height: 28px !important;
+    width: 115px !important;
+    min-width: 115px !important;
+    max-width: 115px !important;
+    box-sizing: border-box !important;
+    margin-left: 10px !important;
+    position: relative !important;
+    z-index: 10 !important;
+    pointer-events: auto !important;
+}
+
+.coord-input-group {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    width: 46px !important;
+    flex-grow: 1 !important;
+}
+
+.coord-prefix-text {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    color: var(--muted) !important;
+    margin-right: 3px !important;
+    user-select: none !important;
+}
+
+/* Делаем инпут РЕДАКТИРУЕМЫМ, КРУПНЫМ и ВИДИМЫМ */
+.coord-text-field {
+    width: 100% !important;
+    height: 20px !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+    text-align: center !important;
+    outline: none !important;
+}
+
+.coord-vertical-split {
+    width: 1px !important;
+    height: 14px !important;
+    background-color: var(--border) !important;
+    margin: 0 2px !important;
+}
