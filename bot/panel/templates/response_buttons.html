@@ -1,7 +1,7 @@
 {% extends "base.html" %} 
 {% block title %}Response Buttons · Telegram Bot Studio{% endblock %} 
-{% block content %}
 
+{% block content %}
 <div class="content-wrap">
   <!-- ЗАГОЛОВОК СТРАНИЦЫ -->
   <div class="page-heading">
@@ -76,13 +76,16 @@
           <!-- СЕТКА КАРТОЧЕК В 2 СТОЛБЦА -->
           <div class="command-checklist">
           {% for command in target_commands %} 
-              {# Логика автоматического определения координат из базы данных #} 
+              {# Универсальная логика определения координат, устойчивая к типам данных JSON/List #} 
               {% set current_row = namespace(value=0) %} 
               {% set current_pos = namespace(value=0) %} 
               {% set check_state = namespace(active=false) %} 
               
-              {% if selected.keyboard %} 
-                  {% for row in selected.keyboard %} 
+              {% if selected.keyboard %}
+                  {# Проверяем, является ли клавиатура строкой, и если да — переводим в список #}
+                  {% set kb_list = selected.keyboard if selected.keyboard is not string else selected.keyboard|from_json %}
+                  
+                  {% for row in kb_list %} 
                       {% set row_loop = loop %} 
                       {% for item in row %} 
                           {% if item|string|replace("/", "")|trim == command.name|string|replace("/", "")|trim %} 
@@ -94,7 +97,7 @@
                   {% endfor %} 
               {% endif %}
 
-              <!-- Контейнер изолирует label от полей ввода, возвращая им кликабельность -->
+              <!-- Строка-карточка отделена от полей ввода -->
               <div class="card-item-container {% if check_state.active %}active-status{% endif %}">
                   
                   <!-- ЛЕВАЯ СТОРОНА: Включает галочку -->
@@ -109,16 +112,16 @@
                       </div>
                   </label>
                   
-                  <!-- ПРАВАЯ СТОРОНА: Поля ввода, полностью изолированные от действий чекбокса -->
+                  <!-- ПРАВАЯ СТОРОНА: Полноценно активные и заполненные инпуты -->
                   <div class="coord-wrapper-fixed">
                       <div class="coord-inner-box">
                           <span class="coord-text-tag">Р:</span>
-                          <input type="text" name="row_{{ command.name }}" value="{{ current_row.value }}" class="coord-field-input">
+                          <input type="text" name="row_{{ command.name }}" value="{{ current_row.value }}" class="coord-field-input" autocomplete="off">
                       </div>
                       <div class="coord-vertical-line"></div>
                       <div class="coord-inner-box">
                           <span class="coord-text-tag">П:</span>
-                          <input type="text" name="pos_{{ command.name }}" value="{{ current_pos.value }}" class="coord-field-input">
+                          <input type="text" name="pos_{{ command.name }}" value="{{ current_pos.value }}" class="coord-field-input" autocomplete="off">
                       </div>
                   </div>
                   
@@ -135,14 +138,6 @@
           </div>
         </div>
       </form>
-
-      {% else %}
-      <!-- СОСТОЯНИЕ КОГДА КОМАНДА НЕ ВЫБРАНА -->
-      <div class="card empty-state">
-          <span>⌘</span>
-          <h3>Команда не выбрана</h3>
-          <p>Выберите интересующую вас команду в левой панели, чтобы открыть редактор сетки кнопок.</p>
-      </div>
       {% endif %}
     </div>
 
@@ -150,7 +145,7 @@
 </div>
 
 <!-- ЖЕСТКАЯ СИСТЕМНАЯ ИЗОЛЯЦИЯ CSS И ВЫВЕДЕНИЕ СЛОЯ НАПЕРЕД -->
-<style>
+<style type="text/css">
   .command-checklist {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -287,6 +282,6 @@
     width: 20px !important;
     height: 20px !important;
     z-index: -1 !important;
-}
+  }
 
 {% endblock %}
