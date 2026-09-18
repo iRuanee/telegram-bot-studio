@@ -779,6 +779,7 @@ def create_app(application, settings) -> FastAPI:
         end_date: str = Form(""),
         end_time: str = Form(""),
         filter_tg_id: str = Form(""),
+        export_all: str = Form(""), # Ловим состояние нового чекбокса
         csrf_token: str = Form(""),
     ):
         verify_csrf(request, csrf_token)
@@ -794,26 +795,31 @@ def create_app(application, settings) -> FastAPI:
                 request.session["flash"] = {"message": "Telegram ID должен состоять только из цифр.", "kind": "error"}
                 return RedirectResponse("/export", status_code=303)
 
-        # Склеиваем дату и время, если время передано
+        # Переводим состояние чекбокса в логический True/False
+        is_export_all = export_all == "on"
+
         full_start = f"{start_date}T{start_time}" if (start_date and start_time) else start_date
         full_end = f"{end_date}T{end_time}" if (end_date and end_time) else end_date
 
         wb = Workbook()
         ws = wb.active
 
-        # Формируем безопасное имя файла
-        clean_start = full_start.replace(":", "-").replace("T", "_") if full_start else ""
-        clean_end = full_end.replace(":", "-").replace("T", "_") if full_end else ""
-        date_suffix = f"_{clean_start}_to_{clean_end}" if (full_start or full_end) else "_all_time"
+        # Формируем суффикс имени файла в зависимости от режима выгрузки
         id_suffix = f"_user_{telegram_id}" if telegram_id else ""
+        if is_export_all:
+            date_suffix = "_full_table"
+        else:
+            clean_start = full_start.replace(":", "-").replace("T", "_") if full_start else ""
+            clean_end = full_end.replace(":", "-").replace("T", "_") if full_end else ""
+            date_suffix = f"_{clean_start}_to_{clean_end}" if (full_start or full_end) else "_all_time"
 
         if target_table == "users":
             ws.title = "Пользователи"
             headers = ["Telegram ID", "Username", "First Name", "Дата регистрации", "Последняя активность"]
             ws.append(headers)
             
-            # Передаем склеенные строки full_start и full_end в базу
-            rows = await db.get_users_by_date(pool, full_start, full_end, telegram_id)
+            # Передаем параметр is_export_all
+            rows = await db.get_users_by_date(pool, full_start, full_end, telegram_id, export_all=is_export_all)
             for row in rows:
                 ws.append([
                     row["telegram_id"],
@@ -822,7 +828,7 @@ def create_app(application, settings) -> FastAPI:
                     row["created_at"].strftime("%Y-%m-%d %H:%M:%S") if row["created_at"] else "",
                     row["last_seen"].strftime("%Y-%m-%d %H:%M:%S") if row["last_seen"] else ""
                 ])
-            filename = f"users_export{id_suffix}{date_suffix}.xlsx"
+            filename = f"users_by_last_seen{id_suffix}{date_suffix}.xlsx"
 
         else:
             ws.title = "Логи взаимодействий"
@@ -833,8 +839,8 @@ def create_app(application, settings) -> FastAPI:
             ]
             ws.append(headers)
             
-            # Передаем склеенные строки full_start и full_end в базу
-            rows = await db.get_interactions_by_date(pool, full_start, full_end, telegram_id)
+            # Передаем параметр is_export_all
+            rows = await db.get_interactions_by_date(pool, full_start, full_end, telegram_id, export_all=is_export_all)
             for row in rows:
                 ws.append([
                     row["telegram_id"],

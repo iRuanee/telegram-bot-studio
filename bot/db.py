@@ -479,9 +479,8 @@ async def log_user_interaction(
         replied_at
     )
 
-
-async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None) -> list[dict]:
-    """Возвращает список пользователей, отфильтрованных по дате создания аккаунта, ID и точному времени."""
+async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None, export_all: bool = False) -> list[dict]:
+    """Возвращает список пользователей, отфильтрованных по last_seen и/или ID. Поддерживает полную выгрузку."""
     query = "SELECT telegram_id, username, first_name, created_at, last_seen FROM users"
     conditions = []
     params = []
@@ -490,39 +489,42 @@ async def get_users_by_date(pool: asyncpg.Pool, start_date: str | None, end_date
         params.append(telegram_id)
         conditions.append(f"telegram_id = ${len(params)}")
         
-    if start_date and start_date.strip():
-        # Проверяем, указал ли пользователь время (есть ли буква T)
-        if "T" in start_date:
-            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
-        else:
-            # Если время не указано, автоматически ставим 00:00:00
-            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").replace(
-                hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc
-            )
-        params.append(start_dt)
-        conditions.append(f"created_at >= ${len(params)}")
-        
-    if end_date and end_date.strip():
-        if "T" in end_date:
-            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
-        else:
-            # Если время не указано, автоматически ставим 23:59:59
-            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").replace(
-                hour=23, minute=59, second=59, microsecond=999999, tzinfo=datetime.timezone.utc
-            )
-        params.append(end_dt)
-        conditions.append(f"created_at <= ${len(params)}")
+    # Фильтры дат применяются только если НЕ выбран чекбокс "Выгрузить всё целиком"
+    if not export_all:
+        if start_date and start_date.strip():
+            if "T" in start_date:
+                start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+            else:
+                start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").replace(
+                    hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc
+                )
+            params.append(start_dt)
+            # ИЗМЕНЕНО: Фильтруем по last_seen вместо created_at
+            conditions.append(f"last_seen >= ${len(params)}")
+            
+        if end_date and end_date.strip():
+            if "T" in end_date:
+                end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+            else:
+                end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    hour=23, minute=59, second=59, microsecond=999999, tzinfo=datetime.timezone.utc
+                )
+            params.append(end_dt)
+            # ИЗМЕНЕНО: Фильтруем по last_seen вместо created_at
+            conditions.append(f"last_seen <= ${len(params)}")
         
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
-    query += " ORDER BY created_at DESC;"
+        
+    # ИЗМЕНЕНО: Сортируем по последней активности last_seen DESC
+    query += " ORDER BY last_seen DESC;"
     
     rows = await pool.fetch(query, *params)
     return [dict(row) for row in rows]
 
 
-async def get_interactions_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None) -> list[dict]:
-    """Возвращает логи взаимодействий, отфильтрованные по ID пользователя и точному времени (часы/минуты)."""
+async def get_interactions_by_date(pool: asyncpg.Pool, start_date: str | None, end_date: str | None, telegram_id: int | None = None, export_all: bool = False) -> list[dict]:
+    """Возвращает логи взаимодействий с фильтром по времени и/или ID. Поддерживает полную выгрузку."""
     query = """
         SELECT telegram_id, username, user_message_type, user_text, 
                reply_type, reply_description, reply_command, reply_text, received_at, replied_at 
@@ -535,25 +537,27 @@ async def get_interactions_by_date(pool: asyncpg.Pool, start_date: str | None, e
         params.append(telegram_id)
         conditions.append(f"telegram_id = ${len(params)}")
         
-    if start_date and start_date.strip():
-        if "T" in start_date:
-            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
-        else:
-            start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").replace(
-                hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc
-            )
-        params.append(start_dt)
-        conditions.append(f"received_at >= ${len(params)}")
-        
-    if end_date and end_date.strip():
-        if "T" in end_date:
-            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
-        else:
-            end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").replace(
-                hour=23, minute=59, second=59, microsecond=999999, tzinfo=datetime.timezone.utc
-            )
-        params.append(end_dt)
-        conditions.append(f"received_at <= ${len(params)}")
+    # Фильтры дат применяются только если НЕ выбран чекбокс "Выгрузить всё целиком"
+    if not export_all:
+        if start_date and start_date.strip():
+            if "T" in start_date:
+                start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+            else:
+                start_dt = datetime.datetime.strptime(start_date, "%Y-%m-%d").replace(
+                    hour=0, minute=0, second=0, microsecond=0, tzinfo=datetime.timezone.utc
+                )
+            params.append(start_dt)
+            conditions.append(f"received_at >= ${len(params)}")
+            
+        if end_date and end_date.strip():
+            if "T" in end_date:
+                end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%dT%H:%M").replace(tzinfo=datetime.timezone.utc)
+            else:
+                end_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d").replace(
+                    hour=23, minute=59, second=59, microsecond=999999, tzinfo=datetime.timezone.utc
+                )
+            params.append(end_dt)
+            conditions.append(f"received_at <= ${len(params)}")
         
     if conditions:
         query += " WHERE " + " AND ".join(conditions)

@@ -11,7 +11,7 @@
 
   📊
 
-  ## 1. Выберите таблицу
+  1. Выберите таблицу
 
   <p>
     <label>
@@ -28,34 +28,62 @@
 
   🔍
 
-  ## 2. Фильтр по пользователю
+  2. Фильтр по пользователю
 
   Оставьте пустым, чтобы выгрузить данные по всем посетителям.
 
   Telegram ID посетителя:
   <input type="text" name="filter_tg_id" placeholder="Например: 385146145" style="display: block; width: 100%; margin-bottom: 20px; padding: 5px;">
 
-  📅
+  ⚙️
 
-  ## 3. Временной промежуток
+  3. Режим выгрузки данных
 
-  Оставьте поля времени пустыми, если хотите выгрузить данные за полные сутки.
+  <!-- НАШ НОВЫЙ ЧЕКБОКС ДЛЯ ПОЛНОЙ ВЫГРУЗКИ КАТЕГОРИЙ -->
+  <p>
+    <label>
+      <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)"> 
+      **Выгрузить таблицу целиком** (игнорировать фильтры времени)
+    </label>
+  </p>
 
-  ### Начало периода (От):
-  <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-    <input type="date" name="start_date" style="flex-grow: 2; padding: 5px;">
-    <input type="time" name="start_time" style="flex-grow: 1; padding: 5px;">
-  </div>
-
-  ### Конец периода (До):
-  <div style="display: flex; gap: 10px; margin-bottom: 25px;">
-    <input type="date" name="end_date" style="flex-grow: 2; padding: 5px;">
-    <input type="time" name="end_time" style="flex-grow: 1; padding: 5px;">
+  <div id="date_filters_block">
+    📅
+    
+    4. Временной промежуток
+  
+    Оставьте поля времени пустыми, если хотите выгрузить данные за полные сутки.
+  
+    ### Начало периода (От):
+    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <input type="date" name="start_date" style="flex-grow: 2; padding: 5px;">
+      <input type="time" name="start_time" style="flex-grow: 1; padding: 5px;">
+    </div>
+  
+    ### Конец периода (До):
+    <div style="display: flex; gap: 10px; margin-bottom: 25px;">
+      <input type="date" name="end_date" style="flex-grow: 2; padding: 5px;">
+      <input type="time" name="end_time" style="flex-grow: 1; padding: 5px;">
+    </div>
   </div>
 
   💾
 
   <button type="submit" style="padding: 8px 20px; font-weight: bold; cursor: pointer;">Сгенерировать и скачать Excel ✓</button>
 </form>
+
+<!-- Маленький удобный скрипт: визуально скрывает поля дат, если отмечен чекбокс полного экспорта -->
+<script>
+function toggleDateFields(checkbox) {
+    const block = document.getElementById('date_filters_block');
+    if (checkbox.checked) {
+        block.style.opacity = '0.4';
+        block.style.pointerEvents = 'none';
+    } else {
+        block.style.opacity = '1';
+        block.style.pointerEvents = 'auto';
+    }
+}
+</script>
 
 {% endblock %}
