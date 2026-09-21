@@ -104,13 +104,13 @@
               <small style="font-size: 11px !important; color: var(--muted) !important;">Игнорировать фильтры времени и скачать всю историю записей</small>
             </div>
             <div class="switch" style="margin: 0 !important; flex-shrink: 0 !important;">
-              <input type="checkbox" name="export_all" id="export_all_checkbox">
+              <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)">
               <i></i>
             </div>
           </div>
 
           <!-- БЛОК ДАТ -->
-          <div id="date_filters_block" style="width: 100% !important;">
+          <div id="date_filters_block" style="transition: .2s ease !important; width: 100% !important;">
             <div class="field-grid two" style="display: flex !important; gap: 20px !important; width: 100% !important;">
               
               <div class="field" style="flex: 1 !important;">
@@ -151,4 +151,4 @@
         </div>
         <div class="toast" style="display: flex !important; gap: 12px !important; background: var(--surface) !important; border: 1px solid var(--border) !important; padding: 16px !important; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;">
           <span style="background: var(--primary-soft) !important; color: var(--primary) !important; border-radius: 50% !important; width: 24px !important; height: 24px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; font-weight: bold !important; flex-shrink: 0 !important;">i</span>
-          <div style="flex: 1 !important; min-width: 0 !important;">
+{% endblock %}
