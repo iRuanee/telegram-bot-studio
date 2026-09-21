@@ -43,14 +43,14 @@
             </div>
           </div>
           
-          <div class="response-types" style="display: flex !important; gap: 16px !important; width: 100% !important;">
+          <div class="response-types" style="display: flex !important; gap: 2px !important; width: 100% !important;">
             <label class="response-option" style="flex: 1 !important; cursor: pointer !important; margin: 0 !important;">
               <input type="radio" name="target_table" value="user_interactions" checked style="margin-right: 8px !important;">
               <div class="response-option-body" style="display: inline-flex !important; align-items: center !important; gap: 10px !important;">
                 <b style="font-size: 16px !important; color: var(--primary) !important;">▤</b>
                 <div>
-                  <strong style="display: block !important; font-size: 13px !important;">Таблица Взаимодействий</strong>
-                  <small style="color: var(--muted) !important; font-size: 11px !important;">История диалогов</small>
+                  <strong style="display: block !important; font-size: 13px !important;">История диалогов</strong>
+                  <small style="color: var(--muted) !important; font-size: 11px !important;">Таблица взаимодействий пользователей с ботом</small>
                 </div>
               </div>
             </label>
@@ -60,8 +60,8 @@
               <div class="response-option-body" style="display: inline-flex !important; align-items: center !important; gap: 10px !important;">
                 <b style="font-size: 16px !important; color: var(--primary) !important;">Aa</b>
                 <div>
-                  <strong style="display: block !important; font-size: 13px !important;">Таблица Пользователей</strong>
-                  <small style="color: var(--muted) !important; font-size: 11px !important;">Сортированная по полю last_seen</small>
+                  <strong style="display: block !important; font-size: 13px !important;">Список пользователей</strong>
+                  <small style="color: var(--muted) !important; font-size: 11px !important;">Таблица сортированная по полю last_seen</small>
                 </div>
               </div>
             </label>
@@ -147,8 +147,10 @@
       <div class="preview-sticky" style="width: 320px !important; min-width: 320px !important; max-width: 320px !important; flex-shrink: 0 !important; position: sticky !important; top: 20px !important;">
         <div class="preview-label" style="display: flex !important; justify-content-between !important; align-items: center; margin-bottom: 10px !important; border-bottom: 1px solid var(--border) !important; padding-bottom: 6px !important;">
           <span style="font-size: 11px !important; font-weight: bold !important; color: var(--muted) !important; text-transform: uppercase !important;">Справка системы</span>
-          <small style="color: var(--muted) !important; font-size: 11px !important;">Формат XLSX</small>
+          <!--<small style="color: var(--muted) !important; font-size: 11px !important;">Формат XLSX</small>-->
         </div>
         <div class="toast" style="display: flex !important; gap: 12px !important; background: var(--surface) !important; border: 1px solid var(--border) !important; padding: 16px !important; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.02) !important;">
           <span style="background: var(--primary-soft) !important; color: var(--primary) !important; border-radius: 50% !important; width: 24px !important; height: 24px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; font-weight: bold !important; flex-shrink: 0 !important;">i</span>
+          <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 6px !important;">Форма предоставляет возможность загрузить данные о пользователях бота, а также историю их взаимодействия с кнопками бота в виде файла Excel.</div>
+
 {% endblock %}
