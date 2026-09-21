@@ -99,23 +99,22 @@
           </div>
 
           <div class="toggle-row" style="display: flex !important; align-items: center !important; justify-content: space-between !important; background: var(--surface-soft) !important; padding: 12px 16px !important; border-radius: 8px !important; border: 1px solid var(--border) !important; margin-bottom: 20px !important;">
-            <div style="display: flex !important; flex-direction: column !important; gap: 2px !important; user-select: none !important;">
+            <div style="display: flex !important; flex-direction: column !important; gap: 2px !important;">
               <strong style="font-size: 13px !important; color: var(--text) !important;">Выгрузить таблицу целиком</strong>
               <small style="font-size: 11px !important; color: var(--muted) !important;">Игнорировать фильтры времени и скачать всю историю записей</small>
+            </div>
+              <label>
+                <div class="switch" style="margin: 0 !important; flex-shrink: 0 !important;">
+                  <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)">
+                  <!--  <i></i> -->
+                </div>
+              </label>
           </div>
-  
-          <!-- Изменено: Обернули в label и жестко зафиксировали кликабельную зону инпута -->
-          <label class="switch" style="margin: 0 !important; flex-shrink: 0 !important; position: relative !important; display: inline-block !important; cursor: pointer !important; width: 40px !important; height: 24px !important;">
-            <input type="checkbox" name="export_all" id="export_all_checkbox" onchange="toggleDateFields(this)" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; opacity: 0 !important; z-index: 10 !important; cursor: pointer !important; margin: 0 !important; padding: 0 !important;">
-              <i style="position: relative !important; z-index: 1 !important; pointer-events: none !important;"></i>
-          </label>
-        </div>
-
 
           <!-- БЛОК ДАТ -->
           <div id="date_filters_block" style="transition: .2s ease !important; width: 100% !important;">
-            <!-- Заменили класс field-grid на обычный flex-контейнер для изоляции от старых стилей -->
-          <div style="display: flex !important; gap: 20px !important; width: 100% !important; flex-direction: row !important;">
+    <!-- Заменили класс field-grid на обычный flex-контейнер для изоляции от старых стилей -->
+    <div style="display: flex !important; gap: 20px !important; width: 100% !important; flex-direction: row !important;">
       
       <div style="flex: 1 !important; min-width: 0 !important;">
         <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Начало периода (От)</label>
