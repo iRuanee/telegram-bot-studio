@@ -43,7 +43,7 @@
             </div>
           </div>
           
-          <div class="response-types" style="display: flex !important; gap: 2px !important; width: 100% !important;">
+          <div class="response-types" style="display: flex !important; width: 100% !important;">
             <label class="response-option" style="flex: 1 !important; cursor: pointer !important; margin: 0 !important;">
               <input type="radio" name="target_table" value="user_interactions" checked style="margin-right: 8px !important;">
               <div class="response-option-body" style="display: inline-flex !important; align-items: center !important; gap: 10px !important;">
@@ -61,7 +61,7 @@
                 <b style="font-size: 16px !important; color: var(--primary) !important;">Aa</b>
                 <div>
                   <strong style="display: block !important; font-size: 13px !important;">Список пользователей</strong>
-                  <small style="color: var(--muted) !important; font-size: 11px !important;">Таблица сортированная по полю last_seen</small>
+                  <small style="color: var(--muted) !important; font-size: 11px !important;">Таблица клиентов сортированная по полю last_seen</small>
                 </div>
               </div>
             </label>
@@ -111,27 +111,30 @@
 
           <!-- БЛОК ДАТ -->
           <div id="date_filters_block" style="transition: .2s ease !important; width: 100% !important;">
-            <div class="field-grid two" style="display: flex !important; gap: 20px !important; width: 100% !important;">
-              
-              <div class="field" style="flex: 1 !important;">
-                <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Начало периода (От)</label>
-                <div style="display: flex !important; gap: 8px !important; width: 100% !important;">
-                  <input type="date" name="start_date" class="native-date-fix">
-                  <input type="time" name="start_time" class="native-date-fix">
-                </div>
-              </div>
-              
-              <div class="field" style="flex: 1 !important;">
-                <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Конец периода (До)</label>
-                <div style="display: flex !important; gap: 8px !important; width: 100% !important;">
-                  <input type="date" name="end_date" class="native-date-fix">
-                  <input type="time" name="end_time" class="native-date-fix">
-                </div>
-              </div>
-              
-            </div>
-            <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 8px !important;">Если время не указано вручную, бот автоматически применит диапазон с 00:00 по 23:59.</div>
-          </div>
+    <!-- Заменили класс field-grid на обычный flex-контейнер для изоляции от старых стилей -->
+    <div style="display: flex !important; gap: 20px !important; width: 100% !important; flex-direction: row !important;">
+      
+      <div style="flex: 1 !important; min-width: 0 !important;">
+        <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Начало периода (От)</label>
+        <!-- align-items: center выравнивает дату и время строго по одной горизонтальной линии -->
+        <div style="display: flex !important; gap: 8px !important; width: 100% !important; flex-direction: row !important; align-items: center !important;">
+          <input type="date" name="start_date" class="native-date-fix" style="margin: 0 !important;">
+          <input type="time" name="start_time" class="native-date-fix" style="margin: 0 !important;">
+        </div>
+      </div>
+      
+      <div style="flex: 1 !important; min-width: 0 !important;">
+        <label style="font-weight: 600 !important; font-size: 12px !important; display: block !important; margin-bottom: 6px !important;">Конец периода (До)</label>
+        <!-- align-items: center выравнивает дату и время строго по одной горизонтальной линии -->
+        <div style="display: flex !important; gap: 8px !important; width: 100% !important; flex-direction: row !important; align-items: center !important;">
+          <input type="date" name="end_date" class="native-date-fix" style="margin: 0 !important;">
+          <input type="time" name="end_time" class="native-date-fix" style="margin: 0 !important;">
+        </div>
+      </div>
+      
+    </div>
+    <div class="hint" style="font-size: 11px !important; color: var(--muted) !important; margin-top: 8px !important;">Если время не указано вручную, бот автоматически применит диапазон с 00:00 по 23:59.</div>
+</div>
 
         </div>
 
