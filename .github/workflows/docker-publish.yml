@@ -23,7 +23,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: codestorm-official/telegram-bot-studio
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   publish:
