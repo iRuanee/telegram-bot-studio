@@ -35,6 +35,7 @@ def upgrade():
             keyboard JSONB,
             enabled BOOLEAN NOT NULL DEFAULT TRUE,
             show_in_menu BOOLEAN NOT NULL DEFAULT TRUE,
+            show_in_start BOOLEAN NOT NULL DEFAULT FALSE,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
@@ -73,6 +74,23 @@ def upgrade():
             ON audit_log (created_at DESC)
         """
     )
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_interactions (
+            id BIGSERIAL PRIMARY KEY,
+            telegram_id BIGINT NOT NULL,
+            username TEXT,
+            user_message_type TEXT NOT NULL DEFAULT 'text',
+            user_text TEXT,
+            reply_type TEXT,
+            reply_description TEXT,
+            reply_command TEXT,
+            reply_text TEXT,
+            received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            replied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )
+        """
+    )
 
 
 def downgrade():
@@ -80,3 +98,4 @@ def downgrade():
     op.execute("DROP TABLE IF EXISTS menu_buttons")
     op.execute("DROP TABLE IF EXISTS commands")
     op.execute("DROP TABLE IF EXISTS users")
+    op.execute("DROP TABLE IF EXISTS user_interactions")
