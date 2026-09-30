@@ -34,7 +34,7 @@ def upgrade():
             media_url TEXT NOT NULL DEFAULT '',
             keyboard JSONB,
             enabled BOOLEAN NOT NULL DEFAULT TRUE,
-            show_in_menu BOOLEAN NOT NULL DEFAULT TRUE,
+            show_in_about BOOLEAN NOT NULL DEFAULT TRUE,
             show_in_start BOOLEAN NOT NULL DEFAULT FALSE,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
